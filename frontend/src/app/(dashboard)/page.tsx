@@ -57,7 +57,7 @@ export default function Homepage() {
     if (!user) return null; // Avoid hydration mismatch or flashing
 
     return (
-        <div className="space-y-8 pb-12 max-w-7xl mx-auto">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 space-y-8 pb-12">
             {/* Welcome Banner */}
             <div className="relative rounded-[2rem] bg-gradient-to-r from-[#eef8f9] to-[#f4fbfc] overflow-hidden border border-slate-100 shadow-sm">
                 <div className="absolute inset-0 opacity-40 mix-blend-multiply" 

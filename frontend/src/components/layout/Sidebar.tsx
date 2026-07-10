@@ -32,7 +32,6 @@ const MENU_ITEMS = [
         category: 'DASHBOARD & PERENCANAAN',
         items: [
             { name: 'Homepage', icon: Home, href: '/' },
-            { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
             { name: 'RKA', icon: FileText, href: '/rka' },
             { name: 'Pipeline Komitmen', icon: Target, href: '/pipeline' },
         ],
@@ -45,11 +44,11 @@ const MENU_ITEMS = [
         ],
     },
     {
-        category: 'GENERATE & LAPORAN',
+        category: 'GENERATE & DASHBOARD',
         items: [
             { name: 'Upload SSA', icon: UploadCloud, href: '/upload-ssa' },
+            { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
             { name: 'Riwayat Generate', icon: Clock, href: '/riwayat-generate' },
-            { name: 'Laporan', icon: FileSpreadsheet, href: '/laporan' },
         ],
     },
     {
@@ -88,13 +87,15 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-white border-r border-slate-200 h-screen flex flex-col flex-shrink-0 sticky top-0 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30">
             {/* Logo Section */}
-            <div className="h-24 flex items-center px-6 border-b border-slate-100 mb-4 shrink-0">
+            <div className="h-24 flex items-center justify-center px-6 border-b border-slate-100 mb-4 shrink-0">
                 <Image 
                     src={logoImage} 
                     alt="SYNCORE Logo" 
                     height={44} 
                     className="object-contain w-auto h-11" 
                     priority
+                    quality={100}
+                    unoptimized
                 />
             </div>
 

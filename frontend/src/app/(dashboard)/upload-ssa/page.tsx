@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, CheckCircle2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, CheckCircle2, X, FileCheck2, Loader2, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 
 interface DropzoneProps {
     title: string;
@@ -101,6 +103,60 @@ export default function UploadSSAPage() {
     // State for checkbox
     const [includeLaba, setIncludeLaba] = useState(false);
 
+    // State for generation modal
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [progressMessage, setProgressMessage] = useState('Sedang menganalisa...');
+    const [generateResult, setGenerateResult] = useState<any>(null);
+
+    const getMonthName = (monthStr: string | number) => {
+        if (!monthStr) return '';
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return months[parseInt(monthStr.toString()) - 1] || monthStr.toString();
+    };
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date) + ' WIB';
+    };
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    
+    const router = useRouter();
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (isGenerating) {
+            setProgress(0);
+            setProgressMessage('Mengunggah file ke server...');
+            
+            // Simulasi tahapan progress karena kita tidak punya SSE dari backend
+            timer = setInterval(() => {
+                setProgress(prev => {
+                    if (prev >= 95) return prev; // Hold at 95% until real response comes
+                    
+                    const next = prev + (Math.random() * 5 + 1);
+                    if (next > 30 && next < 40) setProgressMessage('Membaca & Memvalidasi data...');
+                    if (next > 40 && next < 60) setProgressMessage('Memproses Snapshot & Pivot...');
+                    if (next > 60 && next < 80) setProgressMessage('Menghitung Growth & Laba...');
+                    if (next > 80) setProgressMessage('Menyimpan hasil akhir...');
+                    
+                    return next > 95 ? 95 : next;
+                });
+            }, 800);
+        }
+        
+        return () => {
+            if (timer) clearInterval(timer);
+        };
+    }, [isGenerating]);
+
     // Derived states
     const requiredFilesCount = [fileSimpanan, filePinjaman].filter(Boolean).length;
     const isReadyToGenerate = requiredFilesCount === 2;
@@ -115,8 +171,50 @@ export default function UploadSSAPage() {
         setIncludeLaba(false);
     };
 
+    const handleGenerate = async () => {
+        setIsGenerating(true);
+        try {
+            const formData = new FormData();
+            if (fileSimpanan) formData.append('file_simpanan', fileSimpanan);
+            if (filePinjaman) formData.append('file_pinjaman', filePinjaman);
+            if (fileSimpananHist) formData.append('file_simpanan_hist', fileSimpananHist);
+            if (filePinjamanHist) formData.append('file_pinjaman_hist', filePinjamanHist);
+            
+            // Hit real backend
+            const response = await api.post('/riwayat-generate', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            
+            if (response.data && response.data.data) {
+                setGenerateResult(response.data.data);
+            }
+
+            setProgress(100);
+            setProgressMessage('Selesai!');
+            
+            setTimeout(() => {
+                setIsGenerating(false);
+                setShowSuccessModal(true);
+            }, 500);
+        } catch (error: any) {
+            console.error('Failed to generate', error);
+            setIsGenerating(false);
+            setProgress(0);
+            const url = error.config?.url;
+            const baseURL = error.config?.baseURL;
+            const backendError = error.response?.data?.error || error.response?.data?.message || error.message;
+            alert(`Gagal melakukan generate. URL: ${baseURL}${url} | Error: ${backendError}`);
+        }
+    };
+
+    const handleViewDashboard = () => {
+        router.push('/dashboard');
+    };
+
     return (
-        <div className="max-w-6xl mx-auto space-y-6 pb-24">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 space-y-6 pb-24">
             
             {/* Section 1: File Periode Berjalan (Wajib) */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
@@ -252,27 +350,110 @@ export default function UploadSSAPage() {
                         variant="outline" 
                         onClick={handleClearAll}
                         className="flex-1 py-6 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-transparent font-semibold rounded-xl"
+                        disabled={isGenerating}
                     >
                         Bersihkan
                     </Button>
                     <Button 
-                        disabled={!isReadyToGenerate}
+                        disabled={!isReadyToGenerate || isGenerating}
+                        onClick={handleGenerate}
                         className={`flex-[3] py-6 font-semibold rounded-xl transition-all ${
                             isReadyToGenerate 
                                 ? 'bg-[#0052cc] hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20' 
                                 : 'bg-slate-100 text-slate-400 border-transparent cursor-not-allowed'
                         }`}
                     >
-                        Generate Dashboard
+                        {isGenerating ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                {Math.round(progress)}% - Memproses Data...
+                            </>
+                        ) : (
+                            'Generate Dashboard'
+                        )}
                     </Button>
                 </div>
                 
-                {!isReadyToGenerate && (
+                {isGenerating && (
+                    <div className="mt-6 animate-in slide-in-from-top-2 fade-in duration-300">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-semibold text-[#0052cc]">{progressMessage}</span>
+                            <span className="text-xs font-bold text-slate-600">{Math.round(progress)}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner">
+                            <div 
+                                className="bg-[#0052cc] h-2 rounded-full transition-all duration-300 ease-out relative overflow-hidden" 
+                                style={{ width: `${progress}%` }}
+                            >
+                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                            </div>
+                        </div>
+                        <p className="text-center text-[10px] text-slate-400 mt-2">
+                            Harap jangan menutup halaman ini selama proses berjalan.
+                        </p>
+                    </div>
+                )}
+                
+                {!isReadyToGenerate && !isGenerating && (
                     <p className="text-center text-[11px] text-slate-400 mt-3 font-medium">
                         Lengkapi file periode berjalan terlebih dahulu.
                     </p>
                 )}
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4">
+                                <FileCheck2 className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Generate Berhasil!</h3>
+                            <p className="text-sm text-slate-500 mb-6">
+                                File SSA Simpanan dan Pinjaman telah berhasil diproses menjadi 4 buah Dashboard dan disimpan sebagai snapshot.
+                            </p>
+                            
+                            <div className="bg-slate-50 rounded-xl p-4 mb-6 text-left space-y-2">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-slate-500">Periode</span>
+                                    <span className="font-semibold text-slate-700">
+                                        {generateResult 
+                                            ? (generateResult.period_name || `${getMonthName(generateResult.period_month)} ${generateResult.period_year}`) 
+                                            : 'Juli 2026'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-slate-500">Waktu Generate</span>
+                                    <span className="font-semibold text-slate-700">
+                                        {generateResult ? formatDate(generateResult.generated_at) : '-'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-slate-500">Status</span>
+                                    <span className="font-semibold text-green-600">Sukses</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => setShowSuccessModal(false)}
+                                    className="flex-1 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
+                                >
+                                    Tutup
+                                </Button>
+                                <Button 
+                                    onClick={handleViewDashboard}
+                                    className="flex-1 rounded-xl bg-[#0052cc] hover:bg-blue-700 text-white shadow-md"
+                                >
+                                    Lihat Dashboard
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

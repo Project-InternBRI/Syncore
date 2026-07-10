@@ -14,7 +14,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
 
     const routeInfo: Record<string, { title: string, subtitle: string }> = {
         '/': { title: 'Homepage', subtitle: 'Akses cepat ke fitur utama SYNCORE' },
-        '/dashboard': { title: 'Dashboard', subtitle: 'Ringkasan data dan performa secara keseluruhan' },
+        '/dashboard': { title: 'Dashboard Center', subtitle: 'Pusat informasi dashboard hasil generate' },
         '/rka': { title: 'Rencana Kerja & Anggaran', subtitle: 'Kelola Rencana Kerja dan Anggaran perusahaan' },
         '/pipeline': { title: 'Pipeline Komitmen', subtitle: 'Pantau pipeline dan realisasi komitmen setiap cabang' },
         '/cabang': { title: 'Data Cabang', subtitle: 'Kelola data cabang, KCP, dan unit kerja' },
