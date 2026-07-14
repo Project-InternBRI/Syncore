@@ -166,7 +166,8 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                     if (rka.bulan === bulan) {
                         const item = MATA_ANGGARAN_LIST.find(m => (m as any).dbName === rka.kategori);
                         if (item) {
-                            const formatted = rka.target_nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                            const numValue = Math.round(Number(rka.target_nominal));
+                            const formatted = numValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                             newGridData[item.id] = formatted;
                         }
                     }
