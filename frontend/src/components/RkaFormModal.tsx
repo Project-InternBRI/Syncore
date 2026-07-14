@@ -23,17 +23,20 @@ const MATA_ANGGARAN_LIST = [
     { id: 'pinjaman', name: 'Pinjaman', isHeader: true },
     { id: 'pinj_mikro', name: 'Mikro', dbName: 'Pinjaman - Mikro', isChild: true },
     { id: 'pinj_small', name: 'Small', dbName: 'Pinjaman - Small', isChild: true },
-    { id: 'pinj_konsumer', name: 'Konsumer', dbName: 'Pinjaman - Konsumer', isChild: true },
+    { id: 'pinj_kons_kpr', name: 'Konsumer - KPR', dbName: 'Pinjaman - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'pinj_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'Pinjaman - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'sml', name: 'SML', isHeader: true },
     { id: 'sml_mikro', name: 'Mikro', dbName: 'SML - Mikro', isChild: true },
     { id: 'sml_small', name: 'Small', dbName: 'SML - Small', isChild: true },
-    { id: 'sml_konsumer', name: 'Konsumer', dbName: 'SML - Konsumer', isChild: true },
+    { id: 'sml_kons_kpr', name: 'Konsumer - KPR', dbName: 'SML - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'sml_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'SML - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'npl', name: 'NPL', isHeader: true },
     { id: 'npl_mikro', name: 'Mikro', dbName: 'NPL - Mikro', isChild: true },
     { id: 'npl_small', name: 'Small', dbName: 'NPL - Small', isChild: true },
-    { id: 'npl_konsumer', name: 'Konsumer', dbName: 'NPL - Konsumer', isChild: true },
+    { id: 'npl_kons_kpr', name: 'Konsumer - KPR', dbName: 'NPL - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'npl_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'NPL - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'recovery_ec', name: 'Recovery EC', isHeader: true },
     { id: 'rec_mikro', name: 'Mikro', dbName: 'Recovery EC - Mikro', isChild: true },
@@ -348,9 +351,10 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                         return (
                                             <tr key={item.id} className={`group transition-colors duration-300 border-b ${isHeader ? 'border-slate-200/80' : 'border-slate-100'}`}>
                                                 <td className={`px-5 py-3 whitespace-nowrap sticky left-0 z-10 border-r transition-all duration-300 ${isHeader ? 'bg-[#f4f7fb] shadow-[4px_0_12px_rgba(0,0,0,0.03)] border-slate-200/80 shadow-[inset_3px_0_0_#1a2f5c]' : 'bg-white group-hover:bg-[#f8faff] shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-100 shadow-[inset_3px_0_0_transparent] group-hover:shadow-[inset_3px_0_0_#1a2f5c]'}`}>
-                                                    <div className={`flex items-center ${isHeader ? '' : 'pl-6'}`}>
+                                                    <div className={`flex items-center ${isHeader ? '' : (item as any).isSubChild ? 'pl-12' : 'pl-6'}`}>
                                                         {isComputed && <div className="w-1.5 h-1.5 rounded-full bg-[#1a2f5c] mr-2.5 shadow-[0_0_8px_rgba(26,47,92,0.4)]"></div>}
-                                                        <span className={`${isHeader ? 'text-[11px] font-extrabold text-[#1a2f5c] uppercase tracking-wider' : isComputed ? 'text-[12.5px] font-bold text-[#1a2f5c]' : 'text-[12.5px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors'}`}>
+                                                        {(item as any).isSubChild && <div className="w-1 h-1 rounded-full bg-slate-400 mr-2"></div>}
+                                                        <span className={`${isHeader ? 'text-[11px] font-extrabold text-[#1a2f5c] uppercase tracking-wider' : isComputed ? 'text-[12.5px] font-bold text-[#1a2f5c]' : (item as any).isSubChild ? 'text-[12px] font-semibold text-slate-500 group-hover:text-slate-800 transition-colors italic' : 'text-[12.5px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors'}`}>
                                                             {item.name}
                                                         </span>
                                                     </div>

@@ -105,9 +105,17 @@ async def export_dashboard(dashboard_type: str, payload: dict):
             export_to_excel(data_dict, temp_path)
         elif dashboard_type == 'kcp':
             uker_data = data_dict.get('__uker_data__', data_dict)
+            # Inject __rka__ from parent data_dict so KCP exporter can use it
+            if '__rka__' not in uker_data and '__rka__' in data_dict:
+                uker_data = dict(uker_data)  # shallow copy to avoid mutating snapshot
+                uker_data['__rka__'] = data_dict['__rka__']
             export_uker_to_excel(uker_data, temp_path, 'KCP')
         elif dashboard_type == 'unit':
             uker_data = data_dict.get('__uker_data__', data_dict)
+            # Inject __rka__ from parent data_dict so Unit exporter can use it
+            if '__rka__' not in uker_data and '__rka__' in data_dict:
+                uker_data = dict(uker_data)  # shallow copy to avoid mutating snapshot
+                uker_data['__rka__'] = data_dict['__rka__']
             export_uker_to_excel(uker_data, temp_path, 'Unit')
         elif dashboard_type in ('produk', 'monitoring_produk'):
             export_monitoring_produk_to_excel(data_dict, temp_path)
@@ -121,6 +129,7 @@ async def export_dashboard(dashboard_type: str, payload: dict):
 
         return StreamingResponse(iterfile(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     except Exception as e:
-        print(f"Error in export_dashboard: {str(e)}")
+        error_msg = traceback.format_exc()
+        print(f"Error in export_dashboard: {error_msg}")
         raise HTTPException(status_code=500, detail=str(e))
 

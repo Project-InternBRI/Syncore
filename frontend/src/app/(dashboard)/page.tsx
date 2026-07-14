@@ -62,37 +62,25 @@ export default function Homepage() {
     return (
         <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 space-y-8 pb-12">
             {/* Welcome Banner */}
-            <div className="relative rounded-[2rem] bg-gradient-to-r from-[#eef8f9] to-[#f4fbfc] overflow-hidden border border-slate-100 shadow-sm">
-                <div className="absolute inset-0 opacity-40 mix-blend-multiply" 
-                     style={{
-                         backgroundImage: 'radial-gradient(circle at 100% 100%, #008f99 0, transparent 40%), radial-gradient(circle at 0 0, #0052cc 0, transparent 40%)'
-                     }}
-                />
+            <div className="relative rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm min-h-[200px] md:min-h-[240px] flex items-center"
+                 style={{
+                     backgroundImage: 'url(/images/background_conthome_cropped.png)',
+                     backgroundSize: 'cover',
+                     backgroundPosition: 'center',
+                     backgroundRepeat: 'no-repeat'
+                 }}
+            >
+                {/* Gradient overlay to ensure text is always readable against the background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-transparent md:w-2/3"></div>
                 
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12">
-                    <div className="max-w-xl space-y-4">
-                        <h2 className="text-3xl md:text-4xl font-semibold text-slate-800 tracking-tight">
-                            Selamat datang kembali,<br/>
-                            <span className="text-[#008f99] font-bold capitalize">{user.role?.replace('_', ' ')}!</span>
-                        </h2>
-                        <p className="text-slate-500 text-lg leading-relaxed">
-                            Kelola dan pantau seluruh data SYNCORE melalui sistem terintegrasi dalam satu platform.
-                        </p>
-                    </div>
-                    
-                    {/* Abstract Decorative Element replacing the complex image in mockup */}
-                    <div className="hidden lg:flex relative w-72 h-48 mr-8">
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl border border-white shadow-xl transform rotate-3 transition-transform hover:rotate-0 flex items-center justify-center">
-                            <div className="grid grid-cols-2 gap-4 w-full p-6">
-                                <div className="h-16 bg-blue-100 rounded-lg"></div>
-                                <div className="h-16 bg-teal-100 rounded-lg"></div>
-                                <div className="h-16 bg-slate-100 rounded-lg col-span-2"></div>
-                            </div>
-                        </div>
-                        <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white rounded-2xl shadow-lg border border-slate-50 flex items-center justify-center transform -rotate-6">
-                            <div className="w-10 h-10 bg-gradient-to-br from-[#0052cc] to-[#00b3b3] rounded-lg"></div>
-                        </div>
-                    </div>
+                <div className="relative z-10 p-8 md:p-12 w-full max-w-2xl space-y-3">
+                    <h2 className="text-3xl md:text-4xl font-semibold text-slate-800 tracking-tight">
+                        Selamat datang kembali,<br/>
+                        <span className="text-[#008f99] font-bold capitalize">{user.role?.replace('_', ' ')}!</span>
+                    </h2>
+                    <p className="text-slate-600 text-base md:text-lg leading-relaxed max-w-md">
+                        Kelola dan pantau seluruh data SYNCORE melalui sistem terintegrasi dalam satu platform.
+                    </p>
                 </div>
             </div>
 

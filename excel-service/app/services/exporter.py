@@ -631,12 +631,18 @@ def export_to_excel(data_dict: dict,
         'Pinjaman - Mikro': 'pinj_mikro',
         'Pinjaman - Small': 'pinj_small',
         'Pinjaman - Konsumer': 'pinj_konsumer',
+        'Pinjaman - Konsumer KPR': 'pinj_kons_kpr',
+        'Pinjaman - Konsumer Briguna Ritel': 'pinj_kons_briguna',
         'SML - Mikro': 'sml_mikro',
         'SML - Small': 'sml_small',
         'SML - Konsumer': 'sml_konsumer',
+        'SML - Konsumer KPR': 'sml_kons_kpr',
+        'SML - Konsumer Briguna Ritel': 'sml_kons_briguna',
         'NPL - Mikro': 'npl_mikro',
         'NPL - Small': 'npl_small',
         'NPL - Konsumer': 'npl_konsumer',
+        'NPL - Konsumer KPR': 'npl_kons_kpr',
+        'NPL - Konsumer Briguna Ritel': 'npl_kons_briguna',
         'Recovery EC - Mikro': 'rec_mikro',
         'Recovery EC - Small': 'rec_small',
         'Recovery EC - Konsumer': 'rec_konsumer',
@@ -720,11 +726,11 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
     COL_RKA_START = COL_POS_END + 1
     COL_RKA_END   = COL_RKA_START + 11
     COL_PENCAP    = COL_RKA_END + 1
-    COL_MTD       = COL_PENCAP + 1
-    COL_DTD       = COL_MTD + 1
-    COL_YOY       = COL_DTD + 1
-    COL_YTD       = COL_YOY + 1
-    LAST_COL      = COL_YTD
+    COL_DTD       = COL_PENCAP + 1
+    COL_MTD       = COL_DTD + 1
+    COL_YTD       = COL_MTD + 1
+    COL_YOY       = COL_YTD + 1
+    LAST_COL      = COL_YOY
 
     # ══════════════════════════════════════════════════════════════
     # BARIS 1-2: INFO EXPORT
@@ -858,18 +864,17 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
         c.alignment = header_align
         c.border = header_bdr
 
-    # Growth header grup (baris 3)
-    for ci in range(COL_MTD, COL_YTD + 1):
+    for ci in range(COL_DTD, COL_YOY + 1):
         c = ws.cell(row=HDR_ROW1, column=ci,
-                    value="Growth" if ci == COL_MTD else "")
+                    value="Growth" if ci == COL_DTD else "")
         c.fill = header_fill
         c.font = header_font
         c.alignment = header_align
         c.border = header_bdr
 
-    # Growth detail (baris 4)
-    for col, lbl in [(COL_MTD, mtd_label), (COL_DTD, dtd_label),
-                     (COL_YOY, yoy_label), (COL_YTD, ytd_label)]:
+    # Growth detail (baris 4) — sesuai urutan kolom: DTD, MTD, YTD, YOY
+    for col, lbl in [(COL_DTD, dtd_label), (COL_MTD, mtd_label),
+                     (COL_YTD, ytd_label), (COL_YOY, yoy_label)]:
         c = ws.cell(row=HDR_ROW2, column=col, value=lbl)
         c.fill = header2_fill
         c.font = header2_font
@@ -890,9 +895,9 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
     ws.merge_cells(start_row=HDR_ROW1, start_column=COL_PENCAP,
                    end_row=HDR_ROW2, end_column=COL_PENCAP)
 
-    if COL_YTD > COL_MTD:
-        ws.merge_cells(start_row=HDR_ROW1, start_column=COL_MTD,
-                       end_row=HDR_ROW1, end_column=COL_YTD)
+    if COL_YOY > COL_DTD:
+        ws.merge_cells(start_row=HDR_ROW1, start_column=COL_DTD,
+                       end_row=HDR_ROW1, end_column=COL_YOY)
 
     ws.row_dimensions[HDR_ROW1].height = 28
     ws.row_dimensions[HDR_ROW2].height = 40
@@ -922,14 +927,14 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
             ("DPK Korporasi", "Giro"): ["korp_giro"],
             ("DPK Korporasi", "Deposito"): ["korp_deposito"],
             
-            ("Pinjaman", "Pinjaman"): ["pinj_mikro", "pinj_small", "pinj_konsumer"],
+            ("Pinjaman", "Pinjaman"): ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"],
             ("Pinjaman", "Mikro"): ["pinj_mikro"],
             ("Pinjaman", "Small"): ["pinj_small"],
             ("Pinjaman", "Konsumer"): ["pinj_konsumer"],
             ("Pinjaman", "Konsumer - KPR"): ["pinj_kons_kpr"],
             ("Pinjaman", "Konsumer - Briguna Ritel"): ["pinj_kons_briguna"],
             
-            ("SML", "SML"): ["sml_mikro", "sml_small", "sml_konsumer"],
+            ("SML", "SML"): ["sml_mikro", "sml_small", "sml_kons_kpr", "sml_kons_briguna"],
             ("SML", "SML %"): ["sml_pct"],
             ("SML", "Mikro"): ["sml_mikro"],
             ("SML", "Mikro %"): ["sml_mikro_pct"],
@@ -942,7 +947,7 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
             ("SML", "Konsumer - Briguna Ritel"): ["sml_kons_briguna"],
             ("SML", "Konsumer - Briguna Ritel %"): ["sml_kons_briguna_pct"],
             
-            ("NPL", "NPL"): ["npl_mikro", "npl_small", "npl_konsumer"],
+            ("NPL", "NPL"): ["npl_mikro", "npl_small", "npl_kons_kpr", "npl_kons_briguna"],
             ("NPL", "NPL %"): ["npl_pct"],
             ("NPL", "Mikro"): ["npl_mikro"],
             ("NPL", "Mikro %"): ["npl_mikro_pct"],
@@ -976,8 +981,8 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
                 continue
             if 'pct' in cols[0]:
                 if cols[0] == 'sml_pct':
-                    num = sum(rec.get(c, 0) or 0 for c in ["sml_mikro", "sml_small", "sml_konsumer"])
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    num = sum(rec.get(c, 0) or 0 for c in ["sml_mikro", "sml_small", "sml_kons_kpr", "sml_kons_briguna"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'sml_mikro_pct':
                     num = rec.get("sml_mikro", 0) or 0
                     den = rec.get("pinj_mikro", 0) or 0
@@ -988,29 +993,29 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
                     num = rec.get("sml_konsumer", 0) or 0
                     den = rec.get("pinj_konsumer", 0) or 0
                 elif cols[0] == 'sml_konsumer_kpr_pct':
-                    num = rec.get("sml_konsumer_kpr", 0) or 0
-                    den = rec.get("pinj_konsumer", 0) or 0
+                    num = rec.get("sml_kons_kpr", 0) or 0
+                    den = rec.get("pinj_kons_kpr", 0) or 0
                 elif cols[0] == 'sml_konsumer_briguna_pct':
-                    num = rec.get("sml_konsumer_briguna", 0) or 0
-                    den = rec.get("pinj_konsumer", 0) or 0
+                    num = rec.get("sml_kons_briguna", 0) or 0
+                    den = rec.get("pinj_kons_briguna", 0) or 0
                 elif cols[0] == 'npl_pct':
-                    num = sum(rec.get(c, 0) or 0 for c in ["npl_mikro", "npl_small", "npl_konsumer"])
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    num = sum(rec.get(c, 0) or 0 for c in ["npl_mikro", "npl_small", "npl_kons_kpr", "npl_kons_briguna"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'npl_mikro_pct':
                     num = rec.get("npl_mikro", 0) or 0
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'npl_small_pct':
                     num = rec.get("npl_small", 0) or 0
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'npl_konsumer_pct':
                     num = rec.get("npl_konsumer", 0) or 0
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'npl_konsumer_kpr_pct':
-                    num = rec.get("npl_konsumer_kpr", 0) or 0
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    num = rec.get("npl_kons_kpr", 0) or 0
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 elif cols[0] == 'npl_konsumer_briguna_pct':
-                    num = rec.get("npl_konsumer_briguna", 0) or 0
-                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_konsumer"])
+                    num = rec.get("npl_kons_briguna", 0) or 0
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
                 else:
                     num, den = 0, 1
                     
@@ -1079,9 +1084,8 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
     for i in range(12):
         ws.column_dimensions[get_column_letter(COL_RKA_START + i)].width = 13
     ws.column_dimensions[get_column_letter(COL_PENCAP)].width = 13
-    ws.column_dimensions[get_column_letter(COL_MTD)].width = 17
-    for col in [COL_DTD, COL_YOY, COL_YTD]:
-        ws.column_dimensions[get_column_letter(col)].width = 11
+    for col in [COL_DTD, COL_MTD, COL_YTD, COL_YOY]:
+        ws.column_dimensions[get_column_letter(col)].width = 13
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -1219,8 +1223,8 @@ def _write_header_value(ws, row: int, row_data: dict, rka_vals: list,
     # Growth (kalau ada)
     is_pct = '%' in label
     is_terbalik = row_data.get('is_terbalik', False)
-    for col, key in [(COL_MTD, "mtd"), (COL_DTD, "dtd"),
-                     (COL_YOY, "yoy"), (COL_YTD, "ytd")]:
+    for col, key in [(COL_DTD, "dtd"), (COL_MTD, "mtd"),
+                     (COL_YTD, "ytd"), (COL_YOY, "yoy")]:
         val = row_data.get(key)
         c = ws.cell(row=row, column=col)
         c.fill = fill_obj
@@ -1346,8 +1350,8 @@ def _write_bold_label(ws, row: int, row_data: dict, rka_vals: list,
 
     # Growth
     is_terbalik = row_data.get('is_terbalik', False)
-    for col, key in [(COL_MTD, "mtd"), (COL_DTD, "dtd"),
-                     (COL_YOY, "yoy"), (COL_YTD, "ytd")]:
+    for col, key in [(COL_DTD, "dtd"), (COL_MTD, "mtd"),
+                     (COL_YTD, "ytd"), (COL_YOY, "yoy")]:
         val = row_data.get(key)
         c = ws.cell(row=row, column=col)
         c.fill = fill_obj
@@ -1472,8 +1476,8 @@ def _write_data_row(ws, row: int, row_data: dict, rka_vals: list,
 
     # Growth
     is_terbalik = row_data.get('is_terbalik', False)
-    for col, key in [(COL_MTD, "mtd"), (COL_DTD, "dtd"),
-                     (COL_YOY, "yoy"), (COL_YTD, "ytd")]:
+    for col, key in [(COL_DTD, "dtd"), (COL_MTD, "mtd"),
+                     (COL_YTD, "ytd"), (COL_YOY, "yoy")]:
         val = row_data.get(key)
         c = ws.cell(row=row, column=col)
         c.fill = fill_obj

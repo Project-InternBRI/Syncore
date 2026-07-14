@@ -32,17 +32,20 @@ const MATA_ANGGARAN_LIST = [
     { id: 'pinjaman', name: 'Pinjaman', isHeader: true },
     { id: 'pinj_mikro', name: 'Mikro', dbName: 'Pinjaman - Mikro', isChild: true },
     { id: 'pinj_small', name: 'Small', dbName: 'Pinjaman - Small', isChild: true },
-    { id: 'pinj_konsumer', name: 'Konsumer', dbName: 'Pinjaman - Konsumer', isChild: true },
+    { id: 'pinj_kons_kpr', name: 'Konsumer - KPR', dbName: 'Pinjaman - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'pinj_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'Pinjaman - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'sml', name: 'SML', isHeader: true },
     { id: 'sml_mikro', name: 'Mikro', dbName: 'SML - Mikro', isChild: true },
     { id: 'sml_small', name: 'Small', dbName: 'SML - Small', isChild: true },
-    { id: 'sml_konsumer', name: 'Konsumer', dbName: 'SML - Konsumer', isChild: true },
+    { id: 'sml_kons_kpr', name: 'Konsumer - KPR', dbName: 'SML - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'sml_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'SML - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'npl', name: 'NPL', isHeader: true },
     { id: 'npl_mikro', name: 'Mikro', dbName: 'NPL - Mikro', isChild: true },
     { id: 'npl_small', name: 'Small', dbName: 'NPL - Small', isChild: true },
-    { id: 'npl_konsumer', name: 'Konsumer', dbName: 'NPL - Konsumer', isChild: true },
+    { id: 'npl_kons_kpr', name: 'Konsumer - KPR', dbName: 'NPL - Konsumer KPR', isChild: true, isSubChild: true },
+    { id: 'npl_kons_briguna', name: 'Konsumer - Briguna Ritel', dbName: 'NPL - Konsumer Briguna Ritel', isChild: true, isSubChild: true },
     
     { id: 'recovery_ec', name: 'Recovery EC', isHeader: true },
     { id: 'rec_mikro', name: 'Mikro', dbName: 'Recovery EC - Mikro', isChild: true },

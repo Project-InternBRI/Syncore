@@ -28,7 +28,7 @@ def export_monitoring_produk_to_excel(data_dict: dict, output_path: str):
     pct_format = '0.00%;[Red](0.00%);"-"'
 
     # Filter out non-KC keys
-    skip_keys = {'__stats__', '__uker_data__'}
+    skip_keys = {'__stats__', '__uker_data__', '__rka__'}
     
     # KCs should be sorted, but let's keep the order in data_dict
     kc_names = [k for k in data_dict.keys() if k not in skip_keys and k != 'Total AH Gunsar']

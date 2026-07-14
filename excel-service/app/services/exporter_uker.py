@@ -96,16 +96,36 @@ def export_uker_to_excel(data_dict: dict, output_path: str,
         'Pinjaman - Mikro': 'pinj_mikro',
         'Pinjaman - Small': 'pinj_small',
         'Pinjaman - Konsumer': 'pinj_konsumer',
+        'Pinjaman - Konsumer KPR': 'pinj_kons_kpr',
+        'Pinjaman - Konsumer Briguna Ritel': 'pinj_kons_briguna',
         'SML - Mikro': 'sml_mikro',
         'SML - Small': 'sml_small',
         'SML - Konsumer': 'sml_konsumer',
+        'SML - Konsumer KPR': 'sml_kons_kpr',
+        'SML - Konsumer Briguna Ritel': 'sml_kons_briguna',
         'NPL - Mikro': 'npl_mikro',
         'NPL - Small': 'npl_small',
         'NPL - Konsumer': 'npl_konsumer',
+        'NPL - Konsumer KPR': 'npl_kons_kpr',
+        'NPL - Konsumer Briguna Ritel': 'npl_kons_briguna',
         'Recovery EC - Mikro': 'rec_mikro',
         'Recovery EC - Small': 'rec_small',
         'Recovery EC - Konsumer': 'rec_konsumer',
     }
+    
+    import re
+
+    def normalize_uker_name(name: str) -> str:
+        """
+        Normalkan nama uker untuk perbandingan:
+        - Hapus prefix kode (misal "00433 -- ")
+        - Lowercase
+        - Hapus spasi berlebih
+        """
+        # Hapus prefix kode angka: "00433 -- KCP SENEN JAYA" → "KCP SENEN JAYA"
+        cleaned = re.sub(r'^\d+\s*--\s*', '', str(name).strip())
+        # Lowercase & normalisasi spasi
+        return ' '.join(cleaned.lower().split())
     
     MONTH_NAME_TO_NUM = {
         'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
@@ -114,19 +134,21 @@ def export_uker_to_excel(data_dict: dict, output_path: str,
     }
     
     for rka in rka_payload:
-        uker_full = rka.get('branch_name', '')
-        # For KCP/Unit, we don't strip the name, we use it exactly as is (e.g. "KCP Senen Jaya")
+        uker_full = str(rka.get('branch_name', '')).strip()
+        if not uker_full: continue
         
-        if uker_full not in rka_records_by_month_and_uker:
-            rka_records_by_month_and_uker[uker_full] = {}
+        uker_norm = normalize_uker_name(uker_full)
+        
+        if uker_norm not in rka_records_by_month_and_uker:
+            rka_records_by_month_and_uker[uker_norm] = {}
             
         bulan_str = rka.get('bulan', '').lower()
         bulan_num = MONTH_NAME_TO_NUM.get(bulan_str, '')
         if not bulan_num:
             continue
             
-        if bulan_num not in rka_records_by_month_and_uker[uker_full]:
-            rka_records_by_month_and_uker[uker_full][bulan_num] = {}
+        if bulan_num not in rka_records_by_month_and_uker[uker_norm]:
+            rka_records_by_month_and_uker[uker_norm][bulan_num] = {}
             
         kategori_db = rka.get('kategori', '')
         internal_key = DB_TO_INTERNAL_RKA_MAP.get(kategori_db)
@@ -139,7 +161,7 @@ def export_uker_to_excel(data_dict: dict, output_path: str,
         except ValueError:
             nominal = 0
             
-        rka_records_by_month_and_uker[uker_full][bulan_num][internal_key] = nominal
+        rka_records_by_month_and_uker[uker_norm][bulan_num][internal_key] = nominal
         
     for key in all_keys:
         kc_data = data_dict[key]
@@ -152,7 +174,23 @@ def export_uker_to_excel(data_dict: dict, output_path: str,
         else:
             ws = wb.create_sheet(title=sheet_name)
 
-        rka_for_branch = rka_records_by_month_and_uker.get(key, {})
+        # Match branch: normalize key (strip kode prefix) then lookup in RKA dict
+        key_norm = normalize_uker_name(key)
+        rka_for_branch = rka_records_by_month_and_uker.get(key_norm, {})
+
+        # Fallback: jika tidak ditemukan persis, coba substring match
+        if not rka_for_branch:
+            for uker_db_norm, rka_data in rka_records_by_month_and_uker.items():
+                if uker_db_norm in key_norm or key_norm in uker_db_norm:
+                    rka_for_branch = rka_data
+                    print(f"[RKA UKER MATCH] '{key}' → '{uker_db_norm}' (substring)")
+                    break
+
+        if rka_for_branch:
+            print(f"[RKA UKER] '{key}' → {len(rka_for_branch)} bulan RKA tersedia")
+        else:
+            print(f"[RKA UKER] '{key}' → tidak ada RKA (key_norm={key_norm!r})")
+
         # Gunakan _write_sheet dari exporter.py — logika penulisan identik KC
         _write_sheet(ws, key, kc_data, rka_for_branch)
 

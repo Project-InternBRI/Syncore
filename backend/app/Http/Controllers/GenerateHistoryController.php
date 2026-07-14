@@ -337,11 +337,14 @@ class GenerateHistoryController extends Controller
             // Return file download
             $fileContent = $response->body();
             
-            // Name format: Dashboard KC AH Gunsar 31 Juli 2026.xlsx
-            $monthNames = ['01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April', '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus', '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember'];
-            $month = $monthNames[str_pad($history->period_month, 2, '0', STR_PAD_LEFT)] ?? $history->period_month;
-            $year = $history->period_year;
-            $lastDay = date('t', strtotime("$year-{$history->period_month}-01"));
+            $dateString = $history->period_name;
+            if (!$dateString) {
+                $monthNames = ['01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April', '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus', '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember'];
+                $month = $monthNames[str_pad($history->period_month, 2, '0', STR_PAD_LEFT)] ?? $history->period_month;
+                $year = $history->period_year;
+                $lastDay = date('t', strtotime("$year-{$history->period_month}-01"));
+                $dateString = "{$lastDay} {$month} {$year}";
+            }
             
             $prefix = '';
             if ($dashboardType === 'kc') $prefix = 'Dashboard KC';
@@ -349,7 +352,8 @@ class GenerateHistoryController extends Controller
             elseif ($dashboardType === 'unit') $prefix = 'Dashboard Unit';
             elseif ($dashboardType === 'produk') $prefix = 'Monitoring Produk Dashboard';
             
-            $fileName = "{$prefix} AH Gunsar {$lastDay} {$month} {$year}.xlsx";
+            $fileName = "{$prefix} AH Gunsar {$dateString}.xlsx";
+
 
             return response($fileContent, 200, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

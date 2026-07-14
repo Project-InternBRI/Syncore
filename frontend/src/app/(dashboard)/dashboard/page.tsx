@@ -115,9 +115,13 @@ export default function DashboardCenterPage() {
                 responseType: 'blob'
             });
 
-            const monthName = getMonthName(latestData.period_month);
-            const year = latestData.period_year;
-            const lastDay = new Date(parseInt(year), parseInt(latestData.period_month), 0).getDate();
+            let dateString = latestData.period_name;
+            if (!dateString) {
+                const monthName = getMonthName(latestData.period_month);
+                const year = latestData.period_year;
+                const lastDay = new Date(parseInt(year), parseInt(latestData.period_month), 0).getDate();
+                dateString = `${lastDay} ${monthName} ${year}`;
+            }
             
             let prefix = '';
             if (id === 'kc') prefix = 'Dashboard KC';
@@ -125,7 +129,7 @@ export default function DashboardCenterPage() {
             else if (id === 'unit') prefix = 'Dashboard Unit';
             else if (id === 'produk') prefix = 'Monitoring Produk Dashboard';
             
-            const fileName = `${prefix} AH Gunsar ${lastDay} ${monthName} ${year}.xlsx`;
+            const fileName = `${prefix} AH Gunsar ${dateString}.xlsx`;
 
             const url = URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');

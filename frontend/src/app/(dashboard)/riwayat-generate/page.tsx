@@ -166,8 +166,53 @@ export default function RiwayatGeneratePage() {
     };
 
     const handleExport = async (id: number, type: string) => {
-        // Mock export action
-        alert(`Requesting export for History ID: ${id}, Type: ${type}`);
+        try {
+            let snapshotType = 'kc';
+            if (type === 'dashboard_kc' || type === 'all') snapshotType = 'kc';
+            else if (type === 'dashboard_kcp') snapshotType = 'kcp';
+            else if (type === 'dashboard_unit') snapshotType = 'unit';
+            else if (type === 'monitoring_produk') snapshotType = 'produk';
+
+            const response = await api.post('/riwayat-generate/export', {
+                generate_history_id: id,
+                snapshot_type: snapshotType
+            }, {
+                responseType: 'blob'
+            });
+
+            const url = URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            
+            let fileName = 'Export.xlsx';
+            const historyItem = histories.find(h => h.id === id);
+            
+            if (historyItem) {
+                let dateString = historyItem.period_name;
+                if (!dateString) {
+                    const monthName = getMonthName(historyItem.period_month.toString());
+                    const year = historyItem.period_year;
+                    const lastDay = new Date(parseInt(year), parseInt(historyItem.period_month.toString()), 0).getDate();
+                    dateString = `${lastDay} ${monthName} ${year}`;
+                }
+                
+                let prefix = '';
+                if (snapshotType === 'kc') prefix = 'Dashboard KC';
+                else if (snapshotType === 'kcp') prefix = 'Dashboard KCP';
+                else if (snapshotType === 'unit') prefix = 'Dashboard Unit';
+                else if (snapshotType === 'produk') prefix = 'Monitoring Produk Dashboard';
+                
+                fileName = `${prefix} AH Gunsar ${dateString}.xlsx`;
+            }
+            
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Export failed', error);
+            alert('Gagal mengunduh file.');
+        }
     };
 
     const handlePreview = (id: number, type: string) => {
