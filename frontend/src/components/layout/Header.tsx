@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
-import { Bell, Calendar, ChevronDown, UserCircle2 } from 'lucide-react';
+import { Calendar, ChevronDown, UserCircle2 } from 'lucide-react';
+import NotificationPanel from '@/components/NotificationPanel';
 
 export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke fitur utama SYNCORE' }: { title?: string, subtitle?: string }) {
     const router = useRouter();
@@ -13,20 +14,18 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
     const [dateTime, setDateTime] = useState(new Date());
 
     const routeInfo: Record<string, { title: string, subtitle: string }> = {
-        '/': { title: 'Homepage', subtitle: 'Akses cepat ke fitur utama SYNCORE' },
-        '/dashboard': { title: 'Dashboard Center', subtitle: 'Pusat informasi dashboard hasil generate' },
+        '/': { title: 'Beranda', subtitle: 'Akses cepat ke fitur utama SYNCORE' },
+        '/dashboard': { title: 'Dasbor Pusat', subtitle: 'Pusat informasi dasbor hasil generate' },
         '/rka': { title: 'Rencana Kerja & Anggaran', subtitle: 'Kelola Rencana Kerja dan Anggaran perusahaan' },
         '/pipeline': { title: 'Pipeline Komitmen', subtitle: 'Pantau pipeline dan realisasi komitmen setiap cabang' },
-        '/cabang': { title: 'Data Cabang', subtitle: 'Kelola data cabang, KCP, dan unit kerja' },
-        '/master-data': { title: 'Master Data', subtitle: 'Pusat pengelolaan data referensi sistem' },
-        '/upload-ssa': { title: 'Upload SSA', subtitle: 'Upload file dan Generate SSA Simpanan, & SSA Pinjaman, Data Laba' },
-        '/riwayat-generate': { title: 'Riwayat Generate', subtitle: 'Lihat riwayat generate dashboard SSA' },
-        '/laporan': { title: 'Laporan', subtitle: 'Akses berbagai laporan dan export data' },
-        '/monitoring': { title: 'Monitoring Cabang', subtitle: 'Pantau kinerja dan pencapaian setiap cabang' },
-        '/approval': { title: 'Approval Request', subtitle: 'Kelola dan proses permintaan approval dari pengguna' },
+        '/upload-ssa': { title: 'Unggah SSA', subtitle: 'Unggah file dan Generate SSA Simpanan, & SSA Pinjaman, Data Laba' },
+        '/riwayat-generate': { title: 'Riwayat Generate', subtitle: 'Lihat riwayat generate dasbor SSA' },
+        '/laporan': { title: 'Laporan', subtitle: 'Akses berbagai laporan dan ekspor data' },
+        '/monitoring': { title: 'Pemantauan Cabang', subtitle: 'Pantau kinerja dan pencapaian setiap cabang' },
+        '/approval': { title: 'Permintaan Persetujuan', subtitle: 'Kelola dan proses permintaan persetujuan dari pengguna' },
         '/pengguna': { title: 'Pengguna', subtitle: 'Kelola akun dan akses pengguna sistem' },
-        '/role-permission': { title: 'Role & Permission', subtitle: 'Atur hak akses untuk setiap peran pengguna' },
-        '/activity': { title: 'Activity Log', subtitle: 'Pantau log aktivitas seluruh pengguna di dalam sistem' },
+        '/role-permission': { title: 'Peran & Izin', subtitle: 'Atur hak akses untuk setiap peran pengguna' },
+        '/activity': { title: 'Catatan Aktivitas', subtitle: 'Pantau log aktivitas seluruh pengguna di dalam sistem' },
         '/pengaturan': { title: 'Pengaturan Sistem', subtitle: 'Atur konfigurasi sistem dan preferensi aplikasi' }
     };
 
@@ -102,10 +101,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
                 </div>
 
                 {/* Notifications */}
-                <button className="relative w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
-                </button>
+                <NotificationPanel />
 
                 {/* User Dropdown */}
                 <div className="relative group">

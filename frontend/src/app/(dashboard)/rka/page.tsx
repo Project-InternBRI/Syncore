@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import api from '@/lib/api';
 import RkaFormModal from '@/components/RkaFormModal';
+import CustomDropdown from '@/components/CustomDropdown';
+import api from '@/lib/api';
 
 interface Rka {
     id: number;
@@ -224,17 +225,11 @@ export default function RkaPage() {
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="flex items-center gap-2 mr-2">
-                        <span className="text-sm font-semibold text-slate-700">Tahun:</span>
-                        <select
+                        <CustomDropdown
                             value={selectedYear}
-                            onChange={(e) => setSelectedYear(e.target.value)}
-                            className="pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none"
-                            style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: "right 0.5rem center", backgroundRepeat: "no-repeat", backgroundSize: "1.5em 1.5em" }}
-                        >
-                            {[2024, 2025, 2026, 2027, 2028].map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </select>
+                            onChange={(val) => setSelectedYear(val)}
+                            options={Array.from({ length: 2050 - 2024 + 1 }, (_, i) => (2024 + i).toString())}
+                        />
                     </div>
                     <Button 
                         onClick={() => setModalOpen(true)}

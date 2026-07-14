@@ -36,6 +36,7 @@ class RkaController extends Controller
 
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info("RKA STORE REACHED", $request->all());
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'tahun' => 'required|string',
             'type' => 'required|string|in:KC,KCP,Unit',
@@ -43,10 +44,11 @@ class RkaController extends Controller
             'data' => 'required|array',
             'data.*.kategori' => 'required|string',
             'data.*.bulan' => 'required|string',
-            'data.*.target_nominal' => 'required|numeric'
+            'data.*.target_nominal' => 'nullable|numeric'
         ]);
 
         if ($validator->fails()) {
+            file_put_contents(storage_path('logs/validation_errors.log'), json_encode($validator->errors()->toArray(), JSON_PRETTY_PRINT));
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()

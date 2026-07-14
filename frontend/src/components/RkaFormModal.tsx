@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Loader2, AlertTriangle } from 'lucide-react';
+import { X, Save, Loader2, AlertTriangle, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import api from '@/lib/api';
 
@@ -42,6 +42,61 @@ const MATA_ANGGARAN_LIST = [
 ];
 
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+function CustomSelect({ label, value, options, onChange, placeholder, error, disabled = false }: any) {
+    const [isOpen, setIsOpen] = useState(false);
+    const selectRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedOpt = options.find((o: any) => (o.value || o) === value) || value;
+    const displayValue = selectedOpt?.label || selectedOpt;
+
+    return (
+        <div className="relative" ref={selectRef}>
+            <label className="block text-[13px] font-bold text-slate-700 mb-1.5 uppercase tracking-wide">{label}</label>
+            <div 
+                className={`w-full px-4 py-2.5 bg-slate-50 border ${error ? 'border-red-500 focus:ring-red-500/20' : isOpen ? 'border-[#1a2f5c] ring-2 ring-[#1a2f5c]/20' : 'border-slate-200'} rounded-xl text-sm font-semibold ${value ? 'text-slate-800' : 'text-slate-400'} ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-100' : 'cursor-pointer hover:border-[#1a2f5c]/50'} flex justify-between items-center transition-all shadow-sm`}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+            >
+                <span className="truncate pr-2">{displayValue || placeholder}</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+            {isOpen && !disabled && (
+                <div className="absolute z-[110] w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
+                        {options.map((opt: any) => {
+                            const optValue = opt.value || opt;
+                            const optLabel = opt.label || opt;
+                            const isSelected = value === optValue;
+                            return (
+                                <div 
+                                    key={optValue}
+                                    className={`px-3 py-2 text-[13px] font-semibold rounded-lg cursor-pointer flex items-center justify-between transition-colors ${isSelected ? 'bg-[#1a2f5c] text-white shadow-md shadow-[#1a2f5c]/20' : 'text-slate-700 hover:bg-slate-50 hover:text-[#1a2f5c]'}`}
+                                    onClick={() => {
+                                        onChange(optValue);
+                                        setIsOpen(false);
+                                    }}
+                                >
+                                    <span className="truncate">{optLabel}</span>
+                                    {isSelected && <Check className="w-4 h-4" />}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModalProps) {
     const [loading, setLoading] = useState(false);
@@ -219,130 +274,117 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                 </div>
 
                 {/* Form Body */}
-                <div className="p-6 overflow-hidden flex flex-col flex-1 space-y-6">
+                <div className="p-6 overflow-hidden flex flex-col flex-1 space-y-6 bg-white">
                     
                     {/* Top Configuration */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                        {/* Tahun */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tahun</label>
-                            <input
-                                type="text"
-                                value={tahun}
-                                onChange={(e) => setTahun(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                            />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 shrink-0">
+                        <CustomSelect
+                            label="Tahun"
+                            value={tahun}
+                            onChange={(val: string) => setTahun(val)}
+                            options={Array.from({ length: 2050 - 2024 + 1 }, (_, i) => (2024 + i).toString())}
+                        />
 
-                        {/* Bulan */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Bulan</label>
-                            <select
-                                value={bulan}
-                                onChange={(e) => setBulan(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                            >
-                                {MONTHS.map(m => (
-                                    <option key={m} value={m}>{m}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <CustomSelect
+                            label="Bulan"
+                            value={bulan}
+                            onChange={(val: string) => setBulan(val)}
+                            options={MONTHS}
+                        />
 
-                        {/* Tipe Cabang */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tipe Cabang</label>
-                            <select
-                                value={tipe}
-                                onChange={(e) => {
-                                    setTipe(e.target.value);
-                                    setBranchName(''); // Reset branch on type change
-                                }}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                            >
-                                <option value="KC">Kantor Cabang (KC)</option>
-                                <option value="KCP">Kantor Cabang Pembantu (KCP)</option>
-                                <option value="Unit">Unit Kerja</option>
-                            </select>
-                        </div>
+                        <CustomSelect
+                            label="Tipe Cabang"
+                            value={tipe}
+                            onChange={(val: string) => {
+                                setTipe(val);
+                                setBranchName('');
+                            }}
+                            options={[
+                                { label: 'Kantor Cabang (KC)', value: 'KC' },
+                                { label: 'Kantor Cabang Pembantu (KCP)', value: 'KCP' },
+                                { label: 'Unit Kerja', value: 'Unit' }
+                            ]}
+                        />
 
-                        {/* Unit Kerja */}
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Unit Kerja (Cabang)</label>
-                            <select
-                                value={branchName}
-                                onChange={(e) => {
-                                    setBranchName(e.target.value);
-                                    if(errors.branch_name) setErrors({...errors, branch_name: null});
-                                }}
-                                className={`w-full px-4 py-2 bg-slate-50 border ${errors.branch_name ? 'border-red-500' : 'border-slate-200'} rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500`}
-                            >
-                                <option value="" disabled>Pilih Unit Kerja</option>
-                                {getActiveBranches().map(branch => (
-                                    <option key={branch} value={branch}>{branch}</option>
-                                ))}
-                            </select>
-                            {errors.branch_name && <p className="mt-1 text-xs text-red-500">{errors.branch_name[0]}</p>}
-                        </div>
+                        <CustomSelect
+                            label="Unit Kerja (Cabang)"
+                            value={branchName}
+                            onChange={(val: string) => {
+                                setBranchName(val);
+                                if(errors.branch_name) setErrors({...errors, branch_name: null});
+                            }}
+                            options={getActiveBranches()}
+                            placeholder="Pilih Unit Kerja"
+                            error={errors.branch_name ? errors.branch_name[0] : null}
+                        />
                     </div>
 
                     {/* Loader overlay for fetching data */}
-                    <div className="relative flex-1 min-h-0 border border-slate-200 rounded-xl overflow-hidden flex flex-col">
+                    <div className="relative flex-1 min-h-0 border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm">
                         {isFetching && (
-                            <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-                                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                            <div className="absolute inset-0 z-30 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                                <Loader2 className="w-8 h-8 text-[#1a2f5c] animate-spin" />
                                 <span className="ml-3 font-semibold text-slate-700">Memuat data {branchName}...</span>
                             </div>
                         )}
                         
                         <div className="flex-1 overflow-auto custom-scrollbar relative">
-                            {/* Table Header */}
-                            <div className="bg-slate-800 text-white flex min-w-max sticky top-0 z-10">
-                                <div className="flex-1 px-4 py-3 text-sm font-bold border-r border-slate-700 sticky left-0 z-20 bg-slate-800">
-                                    Mata Anggaran
-                                </div>
-                                <div className="w-64 px-4 py-3 text-sm font-bold text-center bg-blue-600 sticky right-0 z-20">
-                                    Input Data ({bulan}-{tahun.slice(-2)})
-                                </div>
-                            </div>
-                            
-                            {/* Table Body */}
-                            <div className="divide-y divide-slate-100 bg-white min-w-max">
-                                {MATA_ANGGARAN_LIST.map((item) => (
-                                    <div 
-                                        key={item.id} 
-                                        className={`flex items-center hover:bg-slate-50 transition-colors ${item.isHeader ? 'bg-slate-50/50' : ''}`}
-                                    >
-                                        <div className={`flex-1 px-4 py-2.5 text-sm border-r border-slate-100 sticky left-0 z-10 ${item.isHeader ? 'font-bold text-slate-800 bg-slate-50/50' : 'text-slate-600 pl-8 bg-white'}`}>
-                                            {item.name}
-                                        </div>
+                            <table className="min-w-max w-full border-collapse">
+                                <thead className="bg-[#f8faff] sticky top-0 z-20 shadow-[0_1px_2px_rgba(0,0,0,0.05)] border-b border-slate-200">
+                                    <tr>
+                                        <th scope="col" className="px-5 py-3.5 text-left text-[11.5px] font-bold text-[#1a2f5c] uppercase tracking-widest sticky left-0 z-30 bg-[#f8faff] shadow-[4px_0_12px_rgba(0,0,0,0.03)] border-r border-slate-200">
+                                            Mata Anggaran
+                                        </th>
+                                        <th scope="col" className="w-[180px] px-5 py-3.5 text-right text-[11.5px] font-bold text-[#1a2f5c] uppercase tracking-widest sticky right-0 z-30 bg-[#f8faff] shadow-[-4px_0_12px_rgba(0,0,0,0.03)] border-l border-slate-200">
+                                            Input Data ({bulan}-{tahun.slice(-2)})
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white">
+                                    {MATA_ANGGARAN_LIST.map((item) => {
+                                        const isHeader = item.isHeader;
+                                        const isComputed = (item as any).isComputed;
                                         
-                                        <div className="w-64 p-1.5 bg-blue-50/10 sticky right-0 z-10">
-                                            {!item.isHeader && !(item as any).isComputed && (
-                                                <input
-                                                    type="text"
-                                                    value={gridData[item.id] || ''}
-                                                    onChange={(e) => handleGridChange(item.id, e.target.value)}
-                                                    disabled={isFetching || !branchName}
-                                                    placeholder="0"
-                                                    className="w-full px-3 py-1.5 text-right text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 bg-white shadow-sm disabled:opacity-50 disabled:bg-slate-50"
-                                                />
-                                            )}
-                                            {(item as any).isComputed && (
-                                                <div className="w-full px-3 py-1.5 text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded-md">
-                                                    {(() => {
-                                                        let sum = 0;
-                                                        (item as any).computeFrom.forEach((depId: string) => {
-                                                            const val = gridData[depId];
-                                                            if (val) sum += parseInt(val.replace(/\./g, ''), 10);
-                                                        });
-                                                        return sum === 0 ? '0' : sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                                                    })()}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                        return (
+                                            <tr key={item.id} className={`group transition-colors duration-300 border-b ${isHeader ? 'border-slate-200/80' : 'border-slate-100'}`}>
+                                                <td className={`px-5 py-3 whitespace-nowrap sticky left-0 z-10 border-r transition-all duration-300 ${isHeader ? 'bg-[#f4f7fb] shadow-[4px_0_12px_rgba(0,0,0,0.03)] border-slate-200/80 shadow-[inset_3px_0_0_#1a2f5c]' : 'bg-white group-hover:bg-[#f8faff] shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-100 shadow-[inset_3px_0_0_transparent] group-hover:shadow-[inset_3px_0_0_#1a2f5c]'}`}>
+                                                    <div className={`flex items-center ${isHeader ? '' : 'pl-6'}`}>
+                                                        {isComputed && <div className="w-1.5 h-1.5 rounded-full bg-[#1a2f5c] mr-2.5 shadow-[0_0_8px_rgba(26,47,92,0.4)]"></div>}
+                                                        <span className={`${isHeader ? 'text-[11px] font-extrabold text-[#1a2f5c] uppercase tracking-wider' : isComputed ? 'text-[12.5px] font-bold text-[#1a2f5c]' : 'text-[12.5px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors'}`}>
+                                                            {item.name}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                
+                                                <td className={`px-4 py-2.5 whitespace-nowrap text-right sticky right-0 z-10 border-l transition-colors duration-300 ${isHeader ? 'bg-[#f4f7fb] shadow-[-4px_0_12px_rgba(0,0,0,0.03)] border-slate-200/80' : 'bg-white group-hover:bg-[#f8faff] shadow-[-4px_0_12px_rgba(0,0,0,0.02)] border-slate-100'}`}>
+                                                    {!isHeader && !isComputed && (
+                                                        <input
+                                                            type="text"
+                                                            value={gridData[item.id] || ''}
+                                                            onChange={(e) => handleGridChange(item.id, e.target.value)}
+                                                            disabled={isFetching || !branchName}
+                                                            placeholder="0"
+                                                            className="w-full max-w-[150px] ml-auto block px-3 py-1.5 text-right text-[13px] font-bold text-[#1a2f5c] bg-[#f8faff] border border-slate-200/80 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a2f5c]/20 focus:border-[#1a2f5c] hover:bg-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] disabled:opacity-50 disabled:bg-slate-50 transition-all placeholder:font-medium placeholder:text-[#1a2f5c]/30"
+                                                        />
+                                                    )}
+                                                    {isComputed && (
+                                                        <div className="w-full max-w-[150px] ml-auto px-3 py-1.5 text-right text-[13px] font-bold text-[#1a2f5c] bg-[#f8faff] border border-slate-200/80 rounded-lg">
+                                                            {(() => {
+                                                                let sum = 0;
+                                                                (item as any).computeFrom.forEach((depId: string) => {
+                                                                    const val = gridData[depId];
+                                                                    if (val) sum += parseInt(val.replace(/\./g, ''), 10);
+                                                                });
+                                                                return sum === 0 ? '0' : sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -362,7 +404,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                     <Button 
                         onClick={handleSubmit}
                         disabled={loading || isFetching || !branchName}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm px-6"
+                        className="bg-[#1a2f5c] hover:bg-[#111f3d] text-white rounded-xl shadow-[0_4px_12px_rgba(26,47,92,0.2)] hover:shadow-[0_6px_16px_rgba(26,47,92,0.3)] transition-all px-6"
                     >
                         {loading ? (
                             <>

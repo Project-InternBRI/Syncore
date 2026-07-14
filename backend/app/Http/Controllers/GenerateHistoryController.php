@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GenerateHistory;
 use App\Models\GenerateSnapshot;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -168,6 +169,15 @@ class GenerateHistoryController extends Controller
                 'snapshot_data' => $dataDict
             ]);
 
+            // Notify super admins
+            NotificationService::sendToSuperAdmins(
+                'generate_ssa_success',
+                'Generate SSA Berhasil',
+                "Proses generate SSA untuk periode {$periodName} telah berhasil diselesaikan.",
+                'medium',
+                '/riwayat-generate'
+            );
+
             return response()->json([
                 'success' => true,
                 'data' => $history
@@ -175,6 +185,16 @@ class GenerateHistoryController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Process Error: ' . $e->getMessage());
+            
+            // Notify super admins of failure
+            NotificationService::sendToSuperAdmins(
+                'generate_ssa_failed',
+                'Generate SSA Gagal',
+                "Proses generate SSA mengalami kegagalan: " . $e->getMessage(),
+                'high',
+                '/upload-ssa'
+            );
+
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan sistem.',

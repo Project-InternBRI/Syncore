@@ -29,41 +29,35 @@ import Cookies from 'js-cookie';
 
 const MENU_ITEMS = [
     {
-        category: 'DASHBOARD & PERENCANAAN',
+        category: 'BERANDA & PERENCANAAN',
         items: [
-            { name: 'Homepage', icon: Home, href: '/' },
+            { name: 'Beranda', icon: Home, href: '/' },
             { name: 'RKA', icon: FileText, href: '/rka' },
             { name: 'Pipeline Komitmen', icon: Target, href: '/pipeline' },
         ],
     },
+
     {
-        category: 'DATA & MASTER',
+        category: 'GENERATE & DASBOR',
         items: [
-            { name: 'Cabang', icon: Building2, href: '/cabang' },
-            { name: 'Master Data', icon: Database, href: '/master-data' },
-        ],
-    },
-    {
-        category: 'GENERATE & DASHBOARD',
-        items: [
-            { name: 'Upload SSA', icon: UploadCloud, href: '/upload-ssa' },
-            { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+            { name: 'Unggah SSA', icon: UploadCloud, href: '/upload-ssa' },
+            { name: 'Dasbor', icon: LayoutDashboard, href: '/dashboard' },
             { name: 'Riwayat Generate', icon: Clock, href: '/riwayat-generate' },
         ],
     },
     {
-        category: 'MONITORING',
+        category: 'PEMANTAUAN',
         items: [
-            { name: 'Monitoring Cabang', icon: MonitorPlay, href: '/monitoring' },
+            { name: 'Pemantauan Cabang', icon: MonitorPlay, href: '/monitoring' },
         ],
     },
     {
         category: 'SISTEM',
         items: [
-            { name: 'Approval Request', icon: CheckSquare, href: '/approval' },
+            { name: 'Permintaan Persetujuan', icon: CheckSquare, href: '/approval' },
             { name: 'Pengguna', icon: Users, href: '/pengguna' },
-            { name: 'Role & Permission', icon: ShieldAlert, href: '/role-permission' },
-            { name: 'Activity Log', icon: Activity, href: '/activity' },
+            { name: 'Peran & Izin', icon: ShieldAlert, href: '/role-permission' },
+            { name: 'Catatan Aktivitas', icon: Activity, href: '/activity' },
             { name: 'Pengaturan Sistem', icon: Settings, href: '/pengaturan' },
         ],
     },
