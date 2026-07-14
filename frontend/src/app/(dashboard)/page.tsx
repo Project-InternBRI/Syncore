@@ -17,19 +17,22 @@ import {
     Settings,
     ArrowRight,
     Users,
-    Network
+    Network,
+    ShieldAlert,
+    Activity
 } from 'lucide-react';
 
 const MAIN_MENUS = [
     { title: 'Dashboard', desc: 'Lihat ringkasan data dan performa secara keseluruhan.', icon: LayoutDashboard, href: '/dashboard' },
     { title: 'RKA', desc: 'Kelola Rencana Kerja dan Anggaran perusahaan.', icon: FileText, href: '/rka' },
     { title: 'Pipeline Komitmen', desc: 'Pantau pipeline dan realisasi komitmen setiap cabang.', icon: Target, href: '/pipeline' },
-    { title: 'Cabang', desc: 'Kelola data cabang, KCP, dan unit kerja.', icon: Building2, href: '/cabang' },
-    { title: 'Monitoring Cabang', desc: 'Pantau kinerja dan pencapaian setiap cabang.', icon: MonitorPlay, href: '/monitoring' },
-    { title: 'Upload SSA', desc: 'Upload file SSA Simpanan dan Pinjaman.', icon: UploadCloud, href: '/upload-ssa' },
+    { title: 'Unggah SSA', desc: 'Upload file SSA Simpanan dan Pinjaman.', icon: UploadCloud, href: '/upload-ssa' },
     { title: 'Riwayat Generate', desc: 'Lihat riwayat generate dashboard SSA.', icon: Clock, href: '/riwayat-generate' },
-    { title: 'Approval Request', desc: 'Kelola dan proses permintaan approval dari pengguna.', icon: CheckSquare, href: '/approval' },
-    { title: 'Laporan', desc: 'Akses berbagai laporan dan export data.', icon: FileSpreadsheet, href: '/laporan' },
+    { title: 'Pemantauan Cabang', desc: 'Pantau kinerja dan pencapaian setiap cabang.', icon: MonitorPlay, href: '/monitoring', adminOnly: true },
+    { title: 'Permintaan Persetujuan', desc: 'Kelola dan proses permintaan approval dari pengguna.', icon: CheckSquare, href: '/approval', adminOnly: true },
+    { title: 'Pengguna', desc: 'Kelola data pengguna dan akses sistem.', icon: Users, href: '/pengguna', adminOnly: true },
+    { title: 'Peran & Izin', desc: 'Atur hak akses dan peran pengguna.', icon: ShieldAlert, href: '/role-permission', adminOnly: true },
+    { title: 'Catatan Aktivitas', desc: 'Pantau log aktivitas pengguna dalam sistem.', icon: Activity, href: '/activity' },
     { title: 'Pengaturan Sistem', desc: 'Atur konfigurasi sistem dan preferensi aplikasi.', icon: Settings, href: '/pengaturan' },
 ];
 
@@ -93,6 +96,71 @@ export default function Homepage() {
                 </div>
             </div>
 
+            {/* Quick Stats - Super Admin Only */}
+            {user.role === 'super_admin' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
+                    {/* Stat 1: Pengguna */}
+                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052cc] to-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Users className="w-5 h-5" />
+                            </div>
+                            <span className="text-[9px] font-bold text-[#0052cc] bg-blue-50 border border-blue-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                        </div>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">8</h4>
+                            <p className="text-xs text-slate-500 font-medium">Pengguna Sistem</p>
+                        </div>
+                    </div>
+
+                    {/* Stat 2: Cabang */}
+                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#008f99] to-teal-400 text-white flex items-center justify-center shadow-md shadow-teal-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Building2 className="w-5 h-5" />
+                            </div>
+                            <span className="text-[9px] font-bold text-[#008f99] bg-teal-50 border border-teal-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                        </div>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">7</h4>
+                            <p className="text-xs text-slate-500 font-medium">Kantor Cabang</p>
+                        </div>
+                    </div>
+
+                    {/* Stat 3: KCP */}
+                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-400 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Network className="w-5 h-5" />
+                            </div>
+                            <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                        </div>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">20</h4>
+                            <p className="text-xs text-slate-500 font-medium">Kantor Cabang Pembantu</p>
+                        </div>
+                    </div>
+
+                    {/* Stat 4: Unit */}
+                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-violet-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-400 text-white flex items-center justify-center shadow-md shadow-violet-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <LayoutDashboard className="w-5 h-5" />
+                            </div>
+                            <span className="text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                        </div>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">16</h4>
+                            <p className="text-xs text-slate-500 font-medium">Unit Kerja</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Menu Utama Grid */}
             <div className="space-y-4">
                 <h3 className="text-lg font-bold text-slate-800 pb-2 border-b-2 border-slate-100 inline-block">
@@ -100,8 +168,15 @@ export default function Homepage() {
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 pt-2">
-                    {MAIN_MENUS.map((menu, idx) => (
-                        <Link key={idx} href={menu.href} className="group flex flex-col bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-200 transition-all cursor-pointer">
+                    {MAIN_MENUS.filter(menu => {
+                        if (menu.adminOnly && user.role !== 'super_admin') return false;
+                        return true;
+                    }).map((menu, idx) => (
+                        <Link 
+                            key={idx}
+                            href={menu.href}
+                            className="group flex flex-col bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-200 transition-all cursor-pointer"
+                        >
                             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-[#1a2f5c] mb-4 group-hover:bg-[#1a2f5c] group-hover:text-white transition-colors">
                                 <menu.icon className="w-6 h-6" />
                             </div>
@@ -113,54 +188,6 @@ export default function Homepage() {
                             </div>
                         </Link>
                     ))}
-                </div>
-            </div>
-
-            {/* Bottom Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-blue-50 text-[#0052cc] flex items-center justify-center">
-                        <Users className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-[#0052cc] uppercase tracking-wider mb-1">Total Pengguna</p>
-                        <h4 className="text-2xl font-black text-slate-800 leading-none">8</h4>
-                        <p className="text-[11px] text-slate-400 mt-1">Akun aktif sistem</p>
-                    </div>
-                </div>
-                
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-teal-50 text-[#008f99] flex items-center justify-center">
-                        <Building2 className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-[#008f99] uppercase tracking-wider mb-1">Total Cabang</p>
-                        <h4 className="text-2xl font-black text-slate-800 leading-none">7</h4>
-                        <p className="text-[11px] text-slate-400 mt-1">Kantor Cabang</p>
-                    </div>
-                </div>
-                
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-teal-50 text-[#008f99] flex items-center justify-center">
-                        <Network className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-[#008f99] uppercase tracking-wider mb-1">Total KCP</p>
-                        <h4 className="text-2xl font-black text-slate-800 leading-none">20</h4>
-                        <p className="text-[11px] text-slate-400 mt-1">Kantor Cabang Pembantu</p>
-                    </div>
-                </div>
-                
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-slate-50 text-slate-700 flex items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 bg-slate-200/50" style={{ clipPath: 'polygon(50% 50%, 50% 0, 100% 0, 100% 50%)' }}></div>
-                        <LayoutDashboard className="w-6 h-6 relative z-10" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Total Unit</p>
-                        <h4 className="text-2xl font-black text-slate-800 leading-none">16</h4>
-                        <p className="text-[11px] text-slate-400 mt-1">Unit Kerja</p>
-                    </div>
                 </div>
             </div>
 

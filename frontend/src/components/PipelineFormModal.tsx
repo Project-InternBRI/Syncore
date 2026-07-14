@@ -169,12 +169,20 @@ export default function PipelineFormModal({ isOpen, onClose, onSuccess, initialD
         }
     };
 
-    // Initialize category when modal opens
+    // Initialize category and user branch when modal opens
     useEffect(() => {
-        if (isOpen && selectedKategori) {
-            setKategori(selectedKategori);
+        if (isOpen) {
+            if (selectedKategori) {
+                setKategori(selectedKategori);
+            }
+            if (user && user.role !== 'super_admin' && user.branch_name) {
+                setBranchName(user.branch_name);
+                if (user.branch_name.includes('KC ')) setTipe('KC');
+                else if (user.branch_name.includes('KCP ')) setTipe('KCP');
+                else setTipe('Unit');
+            }
         }
-    }, [isOpen, selectedKategori]);
+    }, [isOpen, selectedKategori, user]);
 
     // Auto-populate data
     useEffect(() => {

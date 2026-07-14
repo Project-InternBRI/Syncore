@@ -48,15 +48,15 @@ const MENU_ITEMS = [
     {
         category: 'PEMANTAUAN',
         items: [
-            { name: 'Pemantauan Cabang', icon: MonitorPlay, href: '/monitoring' },
+            { name: 'Pemantauan Cabang', icon: MonitorPlay, href: '/monitoring', adminOnly: true },
         ],
     },
     {
         category: 'SISTEM',
         items: [
-            { name: 'Permintaan Persetujuan', icon: CheckSquare, href: '/approval' },
-            { name: 'Pengguna', icon: Users, href: '/pengguna' },
-            { name: 'Peran & Izin', icon: ShieldAlert, href: '/role-permission' },
+            { name: 'Permintaan Persetujuan', icon: CheckSquare, href: '/approval', adminOnly: true },
+            { name: 'Pengguna', icon: Users, href: '/pengguna', adminOnly: true },
+            { name: 'Peran & Izin', icon: ShieldAlert, href: '/role-permission', adminOnly: true },
             { name: 'Catatan Aktivitas', icon: Activity, href: '/activity' },
             { name: 'Pengaturan Sistem', icon: Settings, href: '/pengaturan' },
         ],
@@ -95,34 +95,45 @@ export default function Sidebar() {
 
             {/* Navigation Menu - Scrollable */}
             <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6 scrollbar-none hover:scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-                {MENU_ITEMS.map((group, idx) => (
-                    <div key={idx}>
-                        <h3 className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                            {group.category}
-                        </h3>
-                        <ul className="space-y-1">
-                            {group.items.map((item) => {
-                                const isActive = pathname === item.href;
-                                return (
-                                    <li key={item.name}>
-                                        <Link 
-                                            href={item.href}
-                                            className={cn(
-                                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                                                isActive 
-                                                    ? "bg-[#1a2f5c] text-white shadow-md shadow-blue-900/20" 
-                                                    : "text-slate-600 hover:bg-slate-50 hover:text-[#1a2f5c]"
-                                            )}
-                                        >
-                                            <item.icon className={cn("w-[18px] h-[18px]", isActive ? "text-white" : "text-slate-400 group-hover:text-[#1a2f5c]")} />
-                                            {item.name}
-                                        </Link>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-                ))}
+                {MENU_ITEMS.map((group, idx) => {
+                    const visibleItems = group.items.filter(item => {
+                        if (item.adminOnly && (!user || user.role !== 'super_admin')) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    
+                    if (visibleItems.length === 0) return null;
+
+                    return (
+                        <div key={idx}>
+                            <h3 className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                                {group.category}
+                            </h3>
+                            <ul className="space-y-1">
+                                {visibleItems.map((item) => {
+                                    const isActive = pathname === item.href;
+                                    return (
+                                        <li key={item.name}>
+                                            <Link 
+                                                href={item.href}
+                                                className={cn(
+                                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                                    isActive 
+                                                        ? "bg-[#1a2f5c] text-white shadow-md shadow-blue-900/20" 
+                                                        : "text-slate-600 hover:bg-slate-50 hover:text-[#1a2f5c]"
+                                                )}
+                                            >
+                                                <item.icon className={cn("w-[18px] h-[18px]", isActive ? "text-white" : "text-slate-400 group-hover:text-[#1a2f5c]")} />
+                                                {item.name}
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Bottom Profile Section */}

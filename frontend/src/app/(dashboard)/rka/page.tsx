@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import RkaFormModal from '@/components/RkaFormModal';
 import CustomDropdown from '@/components/CustomDropdown';
 import api from '@/lib/api';
+import Cookies from 'js-cookie';
 
 interface Rka {
     id: number;
@@ -60,6 +61,7 @@ export default function RkaPage() {
     const [groupedData, setGroupedData] = useState<Record<string, Record<string, Record<string, number>>>>({});
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState<string>('KC Jakarta Tanah Abang');
+    const [user, setUser] = useState<any>(null);
 
     const branchesKC = [
         'KC Jakarta Tanah Abang', 'KC Krekot', 'KC Jakarta Veteran', 
@@ -91,15 +93,29 @@ export default function RkaPage() {
 
     useEffect(() => {
         setIsMounted(true);
+        const userData = Cookies.get('user_data');
+        if (userData) {
+            try {
+                setUser(JSON.parse(userData));
+            } catch (e) {
+                console.error(e);
+            }
+        }
     }, []);
 
     useEffect(() => {
-        if (isMounted) fetchRkas();
+        if (isMounted) {
+            fetchRkas();
+            const interval = setInterval(() => {
+                fetchRkas(true);
+            }, 5000);
+            return () => clearInterval(interval);
+        }
     }, [isMounted, activeTab, selectedYear]);
 
-    const fetchRkas = async () => {
+    const fetchRkas = async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent) setLoading(true);
             const params = {
                 per_page: 'all',
                 type: activeTab,
@@ -132,9 +148,9 @@ export default function RkaPage() {
             }
         } catch (error) {
             console.error('Error fetching RKA data', error);
-            setGroupedData({});
+            if (!isSilent) setGroupedData({});
         } finally {
-            setLoading(false);
+            if (!isSilent) setLoading(false);
         }
     };
 
@@ -223,23 +239,25 @@ export default function RkaPage() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="flex items-center gap-2 mr-2">
-                        <CustomDropdown
-                            value={selectedYear}
-                            onChange={(val) => setSelectedYear(val)}
-                            options={Array.from({ length: 2050 - 2024 + 1 }, (_, i) => (2024 + i).toString())}
-                        />
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 mr-2">
+                            <CustomDropdown
+                                value={selectedYear}
+                                onChange={(val) => setSelectedYear(val)}
+                                options={Array.from({ length: 2050 - 2024 + 1 }, (_, i) => (2024 + i).toString())}
+                            />
+                        </div>
+                        {user?.role === 'super_admin' && (
+                            <Button 
+                                onClick={() => setModalOpen(true)}
+                                className="w-full sm:w-auto flex items-center gap-2 bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-sm rounded-xl px-5"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="font-medium">Tambah / Edit RKA</span>
+                            </Button>
+                        )}
                     </div>
-                    <Button 
-                        onClick={() => setModalOpen(true)}
-                        className="w-full sm:w-auto flex items-center gap-2 bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-sm rounded-xl px-5"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span className="font-medium">Tambah / Edit RKA</span>
-                    </Button>
                 </div>
-            </div>
 
             {/* Main Content Container (Dashboard Workspace Layout) */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex h-[675px]">

@@ -176,6 +176,12 @@ export default function ActionPlanFormModal({ isOpen, onClose, onSuccess, select
             if (selectedKategori) {
                 setKategori(selectedKategori);
             }
+            if (user && user.role !== 'super_admin' && user.branch_name) {
+                setBranchName(user.branch_name);
+                if (user.branch_name.includes('KC ')) setTipe('KC');
+                else if (user.branch_name.includes('KCP ')) setTipe('KCP');
+                else setTipe('Unit');
+            }
             // Reset form fields
             setNasabah('');
             setNominal('');
@@ -183,7 +189,7 @@ export default function ActionPlanFormModal({ isOpen, onClose, onSuccess, select
             setWeek('W1');
             setErrors({});
         }
-    }, [isOpen, selectedKategori]);
+    }, [isOpen, selectedKategori, user]);
 
     if (!isOpen) return null;
 
