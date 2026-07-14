@@ -88,62 +88,82 @@ export default function Homepage() {
             {user.role === 'super_admin' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2">
                     {/* Stat 1: Pengguna */}
-                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052cc] to-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <div className="group relative bg-white rounded-2xl p-4 md:p-5 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_40px_rgba(0,82,204,0.08)] hover:border-blue-500/30 transition-all duration-500 overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#0052cc] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-700"></div>
+                        
+                        <div className="flex justify-between items-start mb-3 relative z-10">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#0052cc] shadow-[0_4px_12px_rgba(0,82,204,0.08)] group-hover:scale-110 group-hover:bg-[#0052cc] group-hover:text-white transition-all duration-500">
                                 <Users className="w-5 h-5" />
                             </div>
-                            <span className="text-[9px] font-bold text-[#0052cc] bg-blue-50 border border-blue-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0052cc] text-[9px] font-bold tracking-wider uppercase border border-blue-100/50">
+                                <span>TOTAL</span>
+                            </div>
                         </div>
+                        
                         <div className="relative z-10">
-                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">8</h4>
-                            <p className="text-xs text-slate-500 font-medium">Pengguna Sistem</p>
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5 group-hover:text-[#0052cc] transition-colors duration-300">8</h4>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Pengguna Sistem</p>
                         </div>
                     </div>
 
                     {/* Stat 2: Cabang */}
-                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-teal-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#008f99] to-teal-400 text-white flex items-center justify-center shadow-md shadow-teal-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <div className="group relative bg-white rounded-2xl p-4 md:p-5 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_40px_rgba(0,143,153,0.08)] hover:border-teal-500/30 transition-all duration-500 overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#008f99] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/20 transition-all duration-700"></div>
+                        
+                        <div className="flex justify-between items-start mb-3 relative z-10">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[#008f99] shadow-[0_4px_12px_rgba(0,143,153,0.08)] group-hover:scale-110 group-hover:bg-[#008f99] group-hover:text-white transition-all duration-500">
                                 <Building2 className="w-5 h-5" />
                             </div>
-                            <span className="text-[9px] font-bold text-[#008f99] bg-teal-50 border border-teal-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#008f99] text-[9px] font-bold tracking-wider uppercase border border-teal-100/50">
+                                <span>TOTAL</span>
+                            </div>
                         </div>
+                        
                         <div className="relative z-10">
-                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">7</h4>
-                            <p className="text-xs text-slate-500 font-medium">Kantor Cabang</p>
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5 group-hover:text-[#008f99] transition-colors duration-300">7</h4>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Kantor Cabang</p>
                         </div>
                     </div>
 
                     {/* Stat 3: KCP */}
-                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-400 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <div className="group relative bg-white rounded-2xl p-4 md:p-5 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_40px_rgba(79,70,229,0.08)] hover:border-indigo-500/30 transition-all duration-500 overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+                        
+                        <div className="flex justify-between items-start mb-3 relative z-10">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-indigo-600 shadow-[0_4px_12px_rgba(79,70,229,0.08)] group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
                                 <Network className="w-5 h-5" />
                             </div>
-                            <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[9px] font-bold tracking-wider uppercase border border-indigo-100/50">
+                                <span>TOTAL</span>
+                            </div>
                         </div>
+                        
                         <div className="relative z-10">
-                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">20</h4>
-                            <p className="text-xs text-slate-500 font-medium">Kantor Cabang Pembantu</p>
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5 group-hover:text-indigo-600 transition-colors duration-300">20</h4>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Kantor Cabang Pembantu</p>
                         </div>
                     </div>
 
                     {/* Stat 4: Unit */}
-                    <div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-violet-100 rounded-full blur-[30px] -mr-8 -mt-8 opacity-40 group-hover:opacity-80 transition-opacity duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10 mb-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-400 text-white flex items-center justify-center shadow-md shadow-violet-500/20 group-hover:scale-110 transition-transform duration-300">
+                    <div className="group relative bg-white rounded-2xl p-4 md:p-5 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_40px_rgba(124,58,237,0.08)] hover:border-violet-500/30 transition-all duration-500 overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all duration-700"></div>
+                        
+                        <div className="flex justify-between items-start mb-3 relative z-10">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-violet-600 shadow-[0_4px_12px_rgba(124,58,237,0.08)] group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white transition-all duration-500">
                                 <LayoutDashboard className="w-5 h-5" />
                             </div>
-                            <span className="text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-1 rounded-full uppercase tracking-wider">Total</span>
+                            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-50 text-violet-600 text-[9px] font-bold tracking-wider uppercase border border-violet-100/50">
+                                <span>TOTAL</span>
+                            </div>
                         </div>
+                        
                         <div className="relative z-10">
-                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5">16</h4>
-                            <p className="text-xs text-slate-500 font-medium">Unit Kerja</p>
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight mb-0.5 group-hover:text-violet-600 transition-colors duration-300">16</h4>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Unit Kerja</p>
                         </div>
                     </div>
                 </div>
@@ -163,16 +183,22 @@ export default function Homepage() {
                         <Link 
                             key={idx}
                             href={menu.href}
-                            className="group flex flex-col bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-teal-200 transition-all cursor-pointer"
+                            className="group relative flex flex-col bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.06)] hover:border-[#1a2f5c]/20 hover:-translate-y-1 transition-all duration-500 overflow-hidden cursor-pointer"
                         >
-                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-[#1a2f5c] mb-4 group-hover:bg-[#1a2f5c] group-hover:text-white transition-colors">
-                                <menu.icon className="w-6 h-6" />
-                            </div>
-                            <h4 className="font-bold text-slate-800 mb-2">{menu.title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed flex-1">{menu.desc}</p>
+                            {/* Decorative background circle */}
+                            <div className="absolute -right-8 -top-8 w-24 h-24 bg-slate-50/50 rounded-full group-hover:scale-150 group-hover:bg-[#1a2f5c]/[0.03] transition-all duration-700 ease-out z-0"></div>
                             
-                            <div className="flex justify-end mt-4">
-                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#008f99] transition-colors" />
+                            <div className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-[#1a2f5c] mb-3 shadow-sm group-hover:bg-[#1a2f5c] group-hover:text-white group-hover:border-[#1a2f5c] group-hover:scale-110 transition-all duration-500 z-10 relative">
+                                <menu.icon className="w-5 h-5" />
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-800 mb-1 z-10 relative group-hover:text-[#1a2f5c] transition-colors duration-300">{menu.title}</h4>
+                            <p className="text-[11px] text-slate-500 leading-relaxed flex-1 z-10 relative">{menu.desc}</p>
+                            
+                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100/80 z-10 relative">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-[#1a2f5c] transition-colors duration-300">Buka Menu</span>
+                                <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#1a2f5c] transition-colors duration-300">
+                                    <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors duration-300" />
+                                </div>
                             </div>
                         </Link>
                     ))}

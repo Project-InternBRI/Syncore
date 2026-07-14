@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Eye, Download, FileText, ChevronDown, Calendar, Search, Trash2, MoreVertical, X, Settings, ChevronRight, Filter, Check } from 'lucide-react';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,12 @@ import RiwayatPreviewModal from '@/components/RiwayatPreviewModal';
 
 const CustomSelect = ({ value, onChange, options, placeholder }: { value: string, onChange: (v: string) => void, options: {label: string, value: string}[], placeholder: string }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
     
     // Auto-close when clicking outside
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
-            if (!(e.target as HTMLElement).closest('.custom-select-container')) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
             }
         };
@@ -23,7 +24,7 @@ const CustomSelect = ({ value, onChange, options, placeholder }: { value: string
     const selectedOption = options.find(opt => opt.value === value);
 
     return (
-        <div className="relative custom-select-container">
+        <div ref={containerRef} className="relative">
             <button 
                 onClick={(e) => { e.preventDefault(); setIsOpen(!isOpen); }}
                 className="w-full flex items-center justify-between py-2 px-3 border border-slate-200 rounded-xl bg-slate-50 text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-white transition-colors"

@@ -80,7 +80,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
     }).format(dateTime) + ' WIB';
 
     return (
-        <header className="h-24 bg-[#FAFAFA] flex items-center justify-between px-8 z-20">
+        <header className="h-24 bg-[#FAFAFA] flex items-center justify-between px-8 z-20 shadow-sm">
             {/* Page Title & Subtitle */}
             <div>
                 <h1 className="text-[22px] font-bold text-slate-800 tracking-tight">{displayTitle}</h1>
