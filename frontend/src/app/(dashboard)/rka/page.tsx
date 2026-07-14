@@ -159,7 +159,7 @@ export default function RkaPage() {
 
     const formatNumber = (num: number) => {
         if (!num) return '0';
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return Math.round(Number(num)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
     const getMonthValue = (branchYear: string, item: any, itemIndex: number, monthFull: string) => {
