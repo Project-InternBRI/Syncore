@@ -481,25 +481,37 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                             <p className="text-sm text-slate-500 mb-8 px-2 leading-relaxed">
                                 {popupMessage.message}
                             </p>
-                            <Button 
-                                onClick={() => {
-                                    if (popupMessage.type === 'success') {
-                                        setPopupMessage(null);
-                                        setGridData({});
-                                        setBranchName('');
-                                        onSuccess();
-                                    } else {
-                                        setPopupMessage(null);
-                                    }
-                                }}
-                                className={`w-full rounded-xl font-bold py-6 transition-all ${
-                                    popupMessage.type === 'success' 
-                                        ? 'bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-[0_4px_12px_rgba(26,47,92,0.2)]' 
-                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm'
-                                }`}
-                            >
-                                {popupMessage.type === 'success' ? 'Tutup & Selesai' : 'Kembali'}
-                            </Button>
+                            {popupMessage.type === 'success' ? (
+                                <div className="flex gap-3 mt-4">
+                                    <Button 
+                                        variant="outline"
+                                        onClick={() => {
+                                            setPopupMessage(null);
+                                            setGridData({});
+                                            setBranchName('');
+                                            onSuccess(); // This closes the modal from parent
+                                        }}
+                                        className="w-full rounded-xl font-bold py-6 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+                                    >
+                                        Tutup
+                                    </Button>
+                                    <Button 
+                                        onClick={() => {
+                                            setPopupMessage(null); // Just close popup, keep modal open
+                                        }}
+                                        className="w-full rounded-xl font-bold py-6 bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-[0_4px_12px_rgba(26,47,92,0.2)] hover:shadow-[0_6px_16px_rgba(26,47,92,0.3)] transition-all"
+                                    >
+                                        Lanjut Input
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button 
+                                    onClick={() => setPopupMessage(null)}
+                                    className="w-full rounded-xl font-bold py-6 transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm mt-4"
+                                >
+                                    Kembali
+                                </Button>
+                            )}
                         </div>
                     </div>
                 )}
