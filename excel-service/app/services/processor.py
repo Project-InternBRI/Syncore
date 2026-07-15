@@ -1360,7 +1360,7 @@ def process_files(
     for lbl, tgl in periodes_sorted:
         n_s = len(df_s[df_s['_label'] == lbl]) if '_label' in df_s.columns else 0
         n_p = len(df_p[df_p['_label'] == lbl]) if '_label' in df_p.columns else 0
-        print(f"  {lbl} ({tgl.date()}) → Simp={n_s}, Pinj={n_p}")
+        print(f"  {lbl} ({tgl.date()}) -> Simp={n_s}, Pinj={n_p}")
 
     cb(44, "Verifikasi data per wilayah...")
 

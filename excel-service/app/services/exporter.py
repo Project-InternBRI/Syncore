@@ -296,7 +296,6 @@ def build_dashboard_visual(ws, data_dict, metadata=None):
     # ──────────────────────────────────────────────
     # STEP 4: HEADER (rows 1-3)
     # ──────────────────────────────────────────────
-    ws.merge_cells('B1:U2')
     ws.row_dimensions[1].height = 60
     ws.row_dimensions[2].height = 40
     ws.row_dimensions[3].height = 20 # Spacer gap
