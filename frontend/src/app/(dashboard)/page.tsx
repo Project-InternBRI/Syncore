@@ -23,11 +23,11 @@ import {
 } from 'lucide-react';
 
 const MAIN_MENUS = [
-    { title: 'Dashboard', desc: 'Lihat ringkasan data dan performa secara keseluruhan.', icon: LayoutDashboard, href: '/dashboard' },
+    { title: 'Dashboard', desc: 'Lihat ringkasan data dan performa secara keseluruhan.', icon: LayoutDashboard, href: '/dashboard', adminOnly: true },
     { title: 'RKA', desc: 'Kelola Rencana Kerja dan Anggaran perusahaan.', icon: FileText, href: '/rka' },
     { title: 'Pipeline Komitmen', desc: 'Pantau pipeline dan realisasi komitmen setiap cabang.', icon: Target, href: '/pipeline' },
-    { title: 'Unggah SSA', desc: 'Upload file SSA Simpanan dan Pinjaman.', icon: UploadCloud, href: '/upload-ssa' },
-    { title: 'Riwayat Generate', desc: 'Lihat riwayat generate dashboard SSA.', icon: Clock, href: '/riwayat-generate' },
+    { title: 'Unggah SSA', desc: 'Upload file SSA Simpanan dan Pinjaman.', icon: UploadCloud, href: '/upload-ssa', adminOnly: true },
+    { title: 'Riwayat Generate', desc: 'Lihat riwayat generate dashboard SSA.', icon: Clock, href: '/riwayat-generate', adminOnly: true },
     { title: 'Pemantauan Cabang', desc: 'Pantau kinerja dan pencapaian setiap cabang.', icon: MonitorPlay, href: '/monitoring', adminOnly: true },
     { title: 'Permintaan Persetujuan', desc: 'Kelola dan proses permintaan approval dari pengguna.', icon: CheckSquare, href: '/approval', adminOnly: true },
     { title: 'Pengguna', desc: 'Kelola data pengguna dan akses sistem.', icon: Users, href: '/pengguna', adminOnly: true },

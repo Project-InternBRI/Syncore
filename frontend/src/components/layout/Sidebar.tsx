@@ -44,9 +44,9 @@ const MENU_ITEMS = [
     {
         category: 'GENERATE & DASBOR',
         items: [
-            { name: 'Unggah SSA', icon: UploadCloud, href: '/upload-ssa' },
-            { name: 'Dasbor', icon: LayoutDashboard, href: '/dashboard' },
-            { name: 'Riwayat Generate', icon: Clock, href: '/riwayat-generate' },
+            { name: 'Unggah SSA', icon: UploadCloud, href: '/upload-ssa', adminOnly: true },
+            { name: 'Dasbor', icon: LayoutDashboard, href: '/dashboard', adminOnly: true },
+            { name: 'Riwayat Generate', icon: Clock, href: '/riwayat-generate', adminOnly: true },
         ],
     },
     {
@@ -195,37 +195,6 @@ export default function Sidebar() {
                 })}
             </div>
 
-            {/* Bottom Profile Section */}
-            <div className="p-4 border-t border-slate-100 shrink-0 bg-white z-10">
-                <div className={cn(
-                    "flex items-center rounded-2xl cursor-pointer transition-all duration-300 border border-transparent hover:bg-slate-50", 
-                    isCollapsed ? "p-0 justify-center w-12 h-12 mx-auto hover:bg-transparent" : "p-2.5 justify-between"
-                )}>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                        <div className={cn(
-                            "rounded-full bg-gradient-to-br from-[#1a2f5c] to-blue-800 text-white flex items-center justify-center flex-shrink-0 font-semibold shadow-inner transition-all duration-300",
-                            isCollapsed ? "w-11 h-11 ring-4 ring-slate-50" : "w-10 h-10"
-                        )} title={isCollapsed ? user?.name : undefined}>
-                            {user?.name ? user.name.charAt(0).toUpperCase() : <UserCircle2 className="w-5 h-5" />}
-                        </div>
-                        
-                        <div className={cn(
-                            "transition-all duration-300 ease-in-out antialiased", 
-                            isCollapsed ? "opacity-0 max-w-0" : "opacity-100 max-w-[140px]"
-                        )}>
-                            <p className="text-sm font-bold text-slate-800 whitespace-nowrap truncate">{user?.name || 'Memuat...'}</p>
-                            <p className="text-xs font-medium text-slate-500 whitespace-nowrap truncate">{user?.email || '...'}</p>
-                        </div>
-                    </div>
-                    
-                    <div className={cn(
-                        "transition-all duration-300",
-                        isCollapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100 max-w-[20px]"
-                    )}>
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                    </div>
-                </div>
-            </div>
         </aside>
     );
 }

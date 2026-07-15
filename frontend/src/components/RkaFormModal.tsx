@@ -116,6 +116,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
     const [errors, setErrors] = useState<any>({});
     const [showConfirmClose, setShowConfirmClose] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
+    const [popupMessage, setPopupMessage] = useState<{type: 'success'|'error', title: string, message: string} | null>(null);
 
     const branchesKC = [
         'KC Jakarta Tanah Abang', 'KC Krekot', 'KC Jakarta Veteran', 
@@ -217,7 +218,11 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
         e.preventDefault();
         
         if (!branchName) {
-            alert('Silakan pilih Unit Kerja terlebih dahulu.');
+            setPopupMessage({
+                type: 'error',
+                title: 'Validasi Gagal',
+                message: 'Silakan pilih Unit Kerja terlebih dahulu sebelum menyimpan data.'
+            });
             return;
         }
 
@@ -244,18 +249,21 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                 data: fullPayloadData
             });
             
-            alert('Berhasil menyimpan data RKA secara massal!');
-            
-            // Reset
-            setGridData({});
-            setBranchName('');
-            onSuccess();
+            setPopupMessage({
+                type: 'success',
+                title: 'Berhasil Disimpan!',
+                message: `Data RKA untuk ${branchName} telah berhasil disimpan ke dalam sistem.`
+            });
         } catch (error: any) {
             console.error('Failed to save RKA', error);
             if (error.response && error.response.data && error.response.data.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                alert('Terjadi kesalahan saat menyimpan data.');
+                setPopupMessage({
+                    type: 'error',
+                    title: 'Gagal Menyimpan',
+                    message: 'Terjadi kesalahan sistem saat mencoba menyimpan data RKA. Silakan coba lagi.'
+                });
             }
         } finally {
             setLoading(false);
@@ -452,6 +460,46 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                     Ya, Batalkan
                                 </Button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Universal Custom Alert/Success Popup */}
+                {popupMessage && (
+                    <div className="absolute inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm rounded-2xl">
+                        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-200">
+                            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner ${popupMessage.type === 'success' ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                <div className={`w-14 h-14 rounded-full flex items-center justify-center ${popupMessage.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
+                                    {popupMessage.type === 'success' ? (
+                                        <Check className="w-8 h-8 text-emerald-600" />
+                                    ) : (
+                                        <AlertTriangle className="w-8 h-8 text-red-600" />
+                                    )}
+                                </div>
+                            </div>
+                            <h4 className="text-2xl font-black text-slate-800 mb-2">{popupMessage.title}</h4>
+                            <p className="text-sm text-slate-500 mb-8 px-2 leading-relaxed">
+                                {popupMessage.message}
+                            </p>
+                            <Button 
+                                onClick={() => {
+                                    if (popupMessage.type === 'success') {
+                                        setPopupMessage(null);
+                                        setGridData({});
+                                        setBranchName('');
+                                        onSuccess();
+                                    } else {
+                                        setPopupMessage(null);
+                                    }
+                                }}
+                                className={`w-full rounded-xl font-bold py-6 transition-all ${
+                                    popupMessage.type === 'success' 
+                                        ? 'bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-[0_4px_12px_rgba(26,47,92,0.2)]' 
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 shadow-sm'
+                                }`}
+                            >
+                                {popupMessage.type === 'success' ? 'Tutup & Selesai' : 'Kembali'}
+                            </Button>
                         </div>
                     </div>
                 )}
