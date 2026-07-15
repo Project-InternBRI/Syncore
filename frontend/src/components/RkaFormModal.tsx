@@ -491,7 +491,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                             setBranchName('');
                                             onSuccess(); // This closes the modal from parent
                                         }}
-                                        className="w-full rounded-xl font-bold py-6 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+                                        className="flex-1 rounded-xl font-bold py-6 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
                                     >
                                         Tutup
                                     </Button>
@@ -499,7 +499,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                         onClick={() => {
                                             setPopupMessage(null); // Just close popup, keep modal open
                                         }}
-                                        className="w-full rounded-xl font-bold py-6 bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-[0_4px_12px_rgba(26,47,92,0.2)] hover:shadow-[0_6px_16px_rgba(26,47,92,0.3)] transition-all"
+                                        className="flex-1 rounded-xl font-bold py-6 bg-[#1a2f5c] hover:bg-[#111f3d] text-white shadow-[0_4px_12px_rgba(26,47,92,0.2)] hover:shadow-[0_6px_16px_rgba(26,47,92,0.3)] transition-all"
                                     >
                                         Lanjut Input
                                     </Button>

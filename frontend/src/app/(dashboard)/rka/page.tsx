@@ -336,7 +336,7 @@ export default function RkaPage() {
                                                 colSpan={14} 
                                                 className="p-0 border-b border-slate-200"
                                             >
-                                                <div className="px-5 py-4 sticky left-0 w-max flex items-center gap-3 z-20">
+                                                <div className="px-5 py-4 sticky left-0 w-max flex items-center gap-3 z-20 bg-white">
                                                     <div className="w-1.5 h-5 bg-[#1a2f5c] rounded-full"></div>
                                                     <span className="text-[14px] font-bold text-slate-800">{branchYear}</span>
                                                 </div>
@@ -349,8 +349,8 @@ export default function RkaPage() {
                                             const isComputed = (item as any).isComputed;
                                             
                                             return (
-                                                <tr key={`${branchYear}-${item.id}`} className={`group transition-colors border-b ${isHeader ? 'bg-slate-50/50 border-slate-200/60' : 'bg-white hover:bg-blue-50/30 border-slate-100'}`}>
-                                                    <td className={`px-5 py-2.5 whitespace-nowrap sticky left-0 z-10 border-r ${isHeader ? 'bg-slate-50/50 shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60' : 'bg-white group-hover:bg-blue-50/30 shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60'}`}>
+                                                <tr key={`${branchYear}-${item.id}`} className={`group transition-colors border-b ${isHeader ? 'bg-slate-50 border-slate-200/60' : 'bg-white hover:bg-[#f4f7fb] border-slate-100'}`}>
+                                                    <td className={`px-5 py-2.5 whitespace-nowrap sticky left-0 z-10 border-r ${isHeader ? 'bg-slate-50 shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60' : 'bg-white group-hover:bg-[#f4f7fb] shadow-[4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60'}`}>
                                                         <div className={`flex items-center ${isHeader ? '' : 'pl-5'}`}>
                                                             {isComputed && <div className="w-1.5 h-1.5 rounded-full bg-[#1a2f5c] mr-2"></div>}
                                                             <span className={`text-[11.5px] ${isHeader ? 'font-bold text-slate-800' : isComputed ? 'font-semibold text-[#1a2f5c]' : 'font-medium text-slate-600'}`}>
@@ -370,7 +370,7 @@ export default function RkaPage() {
                                                         );
                                                     })}
                                                     
-                                                    <td className={`px-5 py-2.5 whitespace-nowrap text-right sticky right-0 z-10 border-l ${isHeader ? 'bg-slate-50/50 shadow-[-4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60' : 'bg-white group-hover:bg-blue-50/30 shadow-[-4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60'}`}>
+                                                    <td className={`px-5 py-2.5 whitespace-nowrap text-right sticky right-0 z-10 border-l ${isHeader ? 'bg-slate-50 shadow-[-4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60' : 'bg-white group-hover:bg-[#f4f7fb] shadow-[-4px_0_12px_rgba(0,0,0,0.02)] border-slate-200/60'}`}>
                                                         <span className={`text-[11.5px] font-bold ${isHeader ? 'text-slate-800' : 'text-emerald-600'}`}>
                                                             {formatNumber(getRowTotal(branchYear, item, itemIndex))}
                                                         </span>
