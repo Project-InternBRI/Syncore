@@ -28,12 +28,9 @@ const MAIN_MENUS = [
     { title: 'Pipeline Komitmen', desc: 'Pantau pipeline dan realisasi komitmen setiap cabang.', icon: Target, href: '/pipeline' },
     { title: 'Unggah SSA', desc: 'Upload file SSA Simpanan dan Pinjaman.', icon: UploadCloud, href: '/upload-ssa', adminOnly: true },
     { title: 'Riwayat Generate', desc: 'Lihat riwayat generate dashboard SSA.', icon: Clock, href: '/riwayat-generate', adminOnly: true },
-    { title: 'Pemantauan Cabang', desc: 'Pantau kinerja dan pencapaian setiap cabang.', icon: MonitorPlay, href: '/monitoring', adminOnly: true },
     { title: 'Permintaan Persetujuan', desc: 'Kelola dan proses permintaan approval dari pengguna.', icon: CheckSquare, href: '/approval', adminOnly: true },
     { title: 'Pengguna', desc: 'Kelola data pengguna dan akses sistem.', icon: Users, href: '/pengguna', adminOnly: true },
-    { title: 'Peran & Izin', desc: 'Atur hak akses dan peran pengguna.', icon: ShieldAlert, href: '/role-permission', adminOnly: true },
     { title: 'Catatan Aktivitas', desc: 'Pantau log aktivitas pengguna dalam sistem.', icon: Activity, href: '/activity' },
-    { title: 'Pengaturan Sistem', desc: 'Atur konfigurasi sistem dan preferensi aplikasi.', icon: Settings, href: '/pengaturan' },
 ];
 
 export default function Homepage() {

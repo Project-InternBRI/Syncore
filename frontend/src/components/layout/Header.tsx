@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
 import api from '@/lib/api';
-import { Calendar, ChevronDown, UserCircle2 } from 'lucide-react';
+import { Calendar, ChevronDown, UserCircle2, Settings, LogOut } from 'lucide-react';
 import NotificationPanel from '@/components/NotificationPanel';
 
 export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke fitur utama SYNCORE' }: { title?: string, subtitle?: string }) {
@@ -80,7 +80,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
     }).format(dateTime) + ' WIB';
 
     return (
-        <header className="h-24 bg-[#FAFAFA] flex items-center justify-between px-8 z-20 shadow-sm">
+        <header className="relative h-24 bg-[#FAFAFA] flex items-center justify-between px-8 z-40 shadow-sm">
             {/* Page Title & Subtitle */}
             <div>
                 <h1 className="text-[22px] font-bold text-slate-800 tracking-tight">{displayTitle}</h1>
@@ -123,11 +123,28 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
                             <p className="text-sm font-bold text-slate-800 truncate">{user?.name}</p>
                             <p className="text-xs font-medium text-slate-500 capitalize">{user?.role?.replace('_', ' ')}</p>
                         </div>
+                        <div className="p-1.5 border-b border-slate-100">
+                            <button 
+                                onClick={() => router.push('/profil')}
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#1a2f5c] rounded-lg transition-colors"
+                            >
+                                <UserCircle2 className="w-4 h-4 text-slate-400" />
+                                Lihat Profil
+                            </button>
+                            <button 
+                                onClick={() => router.push('/pengaturan')}
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#1a2f5c] rounded-lg transition-colors"
+                            >
+                                <Settings className="w-4 h-4 text-slate-400" />
+                                Pengaturan
+                            </button>
+                        </div>
                         <div className="p-1.5">
                             <button 
                                 onClick={handleLogout}
-                                className="w-full text-left px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
+                                <LogOut className="w-4 h-4 text-red-500" />
                                 Keluar Aplikasi
                             </button>
                         </div>

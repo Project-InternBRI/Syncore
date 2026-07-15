@@ -49,20 +49,13 @@ const MENU_ITEMS = [
             { name: 'Riwayat Generate', icon: Clock, href: '/riwayat-generate', adminOnly: true },
         ],
     },
-    {
-        category: 'PEMANTAUAN',
-        items: [
-            { name: 'Pemantauan Cabang', icon: MonitorPlay, href: '/monitoring', adminOnly: true },
-        ],
-    },
+
     {
         category: 'SISTEM',
         items: [
             { name: 'Permintaan Persetujuan', icon: CheckSquare, href: '/approval', adminOnly: true },
             { name: 'Pengguna', icon: Users, href: '/pengguna', adminOnly: true },
-            { name: 'Peran & Izin', icon: ShieldAlert, href: '/role-permission', adminOnly: true },
             { name: 'Catatan Aktivitas', icon: Activity, href: '/activity' },
-            { name: 'Pengaturan Sistem', icon: Settings, href: '/pengaturan' },
         ],
     },
 ];

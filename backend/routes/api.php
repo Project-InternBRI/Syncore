@@ -5,12 +5,16 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GenerateHistoryController;
+use App\Http\Controllers\PenggunaController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Pengguna Routes
+    Route::get('/pengguna', [PenggunaController::class, 'index']);
 
     // Riwayat Generate SSA Routes
     Route::get('/riwayat-generate', [GenerateHistoryController::class, 'index']);
