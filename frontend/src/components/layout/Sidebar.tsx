@@ -28,6 +28,7 @@ import {
     AlignLeft
 } from 'lucide-react';
 import logoImage from '../../../public/logo_syncore.png';
+import logoSmall from '../../../public/logo_syncore_navbarkecil.png';
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 
@@ -117,12 +118,18 @@ export default function Sidebar() {
                         quality={100}
                         unoptimized
                     />
-                    <div className={cn(
-                        "w-11 h-11 bg-gradient-to-br from-[#1a2f5c] to-blue-700 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-900/20 transition-all duration-300 absolute",
-                        isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"
-                    )}>
-                        S
-                    </div>
+                    <Image
+                        src={logoSmall}
+                        alt="SYNCORE Logo Small"
+                        height={40}
+                        className={cn(
+                            "object-contain w-auto h-11 transition-all duration-300 absolute",
+                            isCollapsed ? "opacity-100 scale-100" : "opacity-0 scale-75 pointer-events-none"
+                        )}
+                        priority
+                        quality={100}
+                        unoptimized
+                    />
                 </div>
             </div>
 

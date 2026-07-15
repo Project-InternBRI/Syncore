@@ -136,6 +136,24 @@ export default function RiwayatPreviewModal({ isOpen, onClose, historyId, previe
         return sortedKeys;
     }, [data]);
 
+    const rkaMonths = React.useMemo(() => {
+        const year = dateColumns.length > 0 ? (dateColumns[dateColumns.length - 1].match(/\d{4}/)?.[0] || new Date().getFullYear().toString()) : new Date().getFullYear().toString();
+        const shortYear = year.slice(-2);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+        return months.map(m => `${m}-${shortYear}`);
+    }, [dateColumns]);
+
+    const latestMonthIndex = React.useMemo(() => {
+        if (dateColumns.length === 0) return 11;
+        const lastDate = dateColumns[dateColumns.length - 1].toLowerCase();
+        const monthNames = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+        for (let i = 0; i < 12; i++) {
+            if (lastDate.includes(monthNames[i])) return i;
+        }
+        if (lastDate.includes('ags')) return 7;
+        return 11;
+    }, [dateColumns]);
+
     if (!isOpen) return null;
 
     return (
@@ -197,19 +215,37 @@ export default function RiwayatPreviewModal({ isOpen, onClose, historyId, previe
                                 <table className="min-w-max w-full text-[13px] text-left border-collapse">
                                     <thead className="text-[11px] text-slate-600 bg-slate-50 uppercase font-bold sticky top-0 z-10 shadow-sm">
                                         <tr>
-                                            <th className="px-4 py-3 border-b border-r border-slate-200 bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                            <th rowSpan={2} className="px-4 py-3 border-b border-r border-slate-200 bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] text-center align-middle">
                                                 {previewType === 'monitoring_produk' ? 'Branch Office' : 'Mata Anggaran'}
                                             </th>
-                                            {dateColumns.map(date => (
-                                                <th key={date} className="px-4 py-3 border-b border-r border-slate-200 text-right whitespace-nowrap">{date}</th>
-                                            ))}
-                                            <th className="px-4 py-3 border-b border-r border-slate-200 text-right whitespace-nowrap bg-blue-50/50">RKA</th>
-                                            <th className="px-4 py-3 border-b border-r border-slate-200 text-right whitespace-nowrap bg-blue-50/50">Pencapaian RKA</th>
-                                            <th className="px-4 py-3 border-b border-r border-slate-200 text-right whitespace-nowrap bg-orange-50/50">MTD Growth</th>
-                                            <th className="px-4 py-3 border-b border-r border-slate-200 text-right whitespace-nowrap bg-orange-50/50">YTD Growth</th>
-                                            <th className="px-4 py-3 border-b border-slate-200 text-right whitespace-nowrap bg-orange-50/50">
-                                                {previewType === 'monitoring_produk' ? 'DTD Growth' : 'YoY Growth'}
+                                            {dateColumns.length > 0 && (
+                                                <th colSpan={dateColumns.length} className="px-4 py-2 border-b border-r border-slate-200 text-center bg-slate-100">
+                                                    POSISI
+                                                </th>
+                                            )}
+                                            <th colSpan={12} className="px-4 py-2 border-b border-r border-slate-200 text-center bg-blue-100/50">
+                                                RKA
                                             </th>
+                                            <th rowSpan={2} className="px-4 py-2 border-b border-r border-slate-200 text-center align-middle bg-blue-50/50">
+                                                PENCAPAIAN RKA
+                                            </th>
+                                            <th colSpan={4} className="px-4 py-2 border-b border-slate-200 text-center bg-orange-100/50">
+                                                GROWTH
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            {dateColumns.map(date => (
+                                                <th key={date} className="px-4 py-2 border-b border-r border-slate-200 text-right whitespace-nowrap bg-slate-50">{date}</th>
+                                            ))}
+                                            {rkaMonths.map((m, i) => (
+                                                <th key={`rka-${i}`} className="px-4 py-2 border-b border-r border-slate-200 text-right whitespace-nowrap bg-blue-50/50">
+                                                    {m}
+                                                </th>
+                                            ))}
+                                            <th className="px-4 py-2 border-b border-r border-slate-200 text-right whitespace-nowrap bg-orange-50/50">DTD</th>
+                                            <th className="px-4 py-2 border-b border-r border-slate-200 text-right whitespace-nowrap bg-orange-50/50">MTD</th>
+                                            <th className="px-4 py-2 border-b border-r border-slate-200 text-right whitespace-nowrap bg-orange-50/50">YTD</th>
+                                            <th className="px-4 py-2 border-b border-slate-200 text-right whitespace-nowrap bg-orange-50/50">YOY</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
@@ -223,11 +259,16 @@ export default function RiwayatPreviewModal({ isOpen, onClose, historyId, previe
                                                         {row.values && row.values[date] !== undefined ? formatCurrency(row.values[date]) : '-'}
                                                     </td>
                                                 ))}
-                                                <td className="px-4 py-2.5 text-right font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap bg-blue-50/10">
-                                                    {row.rka ? formatCurrency(row.rka) : '-'}
-                                                </td>
+                                                {rkaMonths.map((_, i) => (
+                                                    <td key={`rka-val-${i}`} className="px-4 py-2.5 text-right font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap bg-blue-50/10">
+                                                        {i === latestMonthIndex && row.rka ? formatCurrency(row.rka) : '-'}
+                                                    </td>
+                                                ))}
                                                 <td className="px-4 py-2.5 text-right font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap bg-blue-50/10">
                                                     {row.pencapaian_rka ? `${(row.pencapaian_rka * 100).toFixed(2)}%` : '-'}
+                                                </td>
+                                                <td className={`px-4 py-2.5 text-right font-medium whitespace-nowrap border-r border-slate-100 bg-orange-50/10 ${row.dtd < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {formatCurrency(row.dtd)}
                                                 </td>
                                                 <td className={`px-4 py-2.5 text-right font-medium whitespace-nowrap border-r border-slate-100 bg-orange-50/10 ${row.mtd < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                     {formatCurrency(row.mtd)}
@@ -235,8 +276,8 @@ export default function RiwayatPreviewModal({ isOpen, onClose, historyId, previe
                                                 <td className={`px-4 py-2.5 text-right font-medium whitespace-nowrap border-r border-slate-100 bg-orange-50/10 ${row.ytd < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                     {formatCurrency(row.ytd)}
                                                 </td>
-                                                <td className={`px-4 py-2.5 text-right font-medium whitespace-nowrap bg-orange-50/10 ${(previewType === 'monitoring_produk' ? row.dtd : row.yoy) < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                                    {formatCurrency(previewType === 'monitoring_produk' ? row.dtd : row.yoy)}
+                                                <td className={`px-4 py-2.5 text-right font-medium whitespace-nowrap bg-orange-50/10 ${row.yoy < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {formatCurrency(row.yoy)}
                                                 </td>
                                             </tr>
                                         ))}
