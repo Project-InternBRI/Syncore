@@ -110,8 +110,12 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
     const [tipe, setTipe] = useState('KC');
     const [branchName, setBranchName] = useState('');
     
-    // Grid Data state (key is the id of the mata anggaran)
-    const [gridData, setGridData] = useState<Record<string, string>>({});
+    // Grid Data state (drafts for multiple contexts)
+    const [draftData, setDraftData] = useState<Record<string, Record<string, string>>>({});
+    
+    // Derived current grid data
+    const currentContextKey = `${tahun}|${tipe}|${branchName}|${bulan}`;
+    const gridData = draftData[currentContextKey] || {};
     
     const [errors, setErrors] = useState<any>({});
     const [showConfirmClose, setShowConfirmClose] = useState(false);
@@ -146,12 +150,15 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
         return branchesUnit;
     };
 
+    const isContextDrafted = !!draftData[currentContextKey];
+
     // Auto-populate data
     useEffect(() => {
         if (!isOpen || !branchName || !tahun || !bulan) {
-            setGridData({});
             return;
         }
+
+        if (isContextDrafted) return; // Already have draft or fetched data for this context
 
         const fetchRka = async () => {
             setIsFetching(true);
@@ -160,21 +167,35 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                 const res = await api.get(`/rka?tahun=${tahun}&branch_name=${encodeURIComponent(branchName)}&per_page=all`);
                 const existingData = res.data.data || [];
                 
-                const newGridData: Record<string, string> = {};
-                
-                // Only populate the data for the currently selected "bulan"
-                existingData.forEach((rka: any) => {
-                    if (rka.bulan === bulan) {
+                setDraftData(prev => {
+                    const newData = { ...prev };
+                    
+                    const fetchedByBulan: Record<string, Record<string, string>> = {};
+                    
+                    existingData.forEach((rka: any) => {
+                        const b = rka.bulan;
                         const item = MATA_ANGGARAN_LIST.find(m => (m as any).dbName === rka.kategori);
                         if (item) {
-                            const numValue = Math.round(Number(rka.target_nominal));
-                            const formatted = numValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                            newGridData[item.id] = formatted;
+                            const numValue = String(rka.target_nominal);
+                            const parts = numValue.split('.');
+                            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                            const formatted = (parts.length > 1 && parts[0] === '0') ? parts.join('.') : parts.join(',');
+                            
+                            if (!fetchedByBulan[b]) fetchedByBulan[b] = {};
+                            fetchedByBulan[b][item.id] = formatted;
                         }
-                    }
+                    });
+                    
+                    // Populate all months for this branch/year into draft if not already there
+                    MONTHS.forEach(m => {
+                        const k = `${tahun}|${tipe}|${branchName}|${m}`;
+                        if (!newData[k]) {
+                            newData[k] = fetchedByBulan[m] || {};
+                        }
+                    });
+                    
+                    return newData;
                 });
-                
-                setGridData(newGridData);
             } catch (err) {
                 console.error('Failed to fetch existing RKA', err);
             } finally {
@@ -183,22 +204,43 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
         };
 
         fetchRka();
-    }, [isOpen, branchName, tahun, bulan]);
+    }, [isOpen, branchName, tahun, tipe, bulan, isContextDrafted, currentContextKey]);
 
     if (!isOpen) return null;
 
     const handleGridChange = (id: string, value: string) => {
-        const rawValue = value.replace(/\D/g, '');
-        const formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        let isZeroDecimal = value.startsWith('0.');
+        let rawValue = value.replace(/[^0-9,.]/g, '');
+
+        let formattedValue = '';
+        if (isZeroDecimal) {
+            const firstDot = rawValue.indexOf('.');
+            rawValue = rawValue.slice(0, firstDot + 1) + rawValue.slice(firstDot + 1).replace(/\./g, '');
+            const parts = rawValue.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            formattedValue = parts.join('.');
+        } else if (rawValue.includes(',')) {
+            const firstComma = rawValue.indexOf(',');
+            rawValue = rawValue.slice(0, firstComma + 1) + rawValue.slice(firstComma + 1).replace(/[,.]/g, '');
+            const parts = rawValue.split(',');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            formattedValue = parts.join(',');
+        } else {
+            rawValue = rawValue.replace(/\./g, '');
+            formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
         
-        setGridData(prev => ({
+        setDraftData(prev => ({
             ...prev,
-            [id]: formattedValue
+            [currentContextKey]: {
+                ...(prev[currentContextKey] || {}),
+                [id]: formattedValue
+            }
         }));
     };
 
     const handleClose = () => {
-        const hasData = Object.values(gridData).some(val => val !== '');
+        const hasData = Object.values(draftData).some(monthData => Object.values(monthData).some(val => val !== ''));
         if (hasData) {
             setShowConfirmClose(true);
         } else {
@@ -207,7 +249,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
     };
 
     const doClose = () => {
-        setGridData({});
+        setDraftData({});
         setBranchName('');
         setErrors({});
         setShowConfirmClose(false);
@@ -229,31 +271,54 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
         setLoading(true);
         setErrors({});
 
-        // Send all filled/empty values to backend so backend can update or delete
-        const fullPayloadData = MATA_ANGGARAN_LIST
-            .filter(item => !item.isHeader && !(item as any).isComputed)
-            .map(item => {
-                const val = gridData[item.id];
-                return {
-                    kategori: (item as any).dbName || item.name,
-                    bulan: bulan, // current selected bulan
-                    target_nominal: val ? val.replace(/\./g, '') : ''
+        // Group draftData by (tahun, tipe, branchName)
+        const payloads: Record<string, { tahun: string, type: string, branch_name: string, data: any[] }> = {};
+
+        Object.entries(draftData).forEach(([key, monthData]) => {
+            const [k_tahun, k_tipe, k_branchName, k_bulan] = key.split('|');
+            const groupKey = `${k_tahun}|${k_tipe}|${k_branchName}`;
+            
+            if (!payloads[groupKey]) {
+                payloads[groupKey] = {
+                    tahun: k_tahun,
+                    type: k_tipe,
+                    branch_name: k_branchName,
+                    data: []
                 };
-            });
+            }
+
+            MATA_ANGGARAN_LIST
+                .filter(item => !item.isHeader && !(item as any).isComputed)
+                .forEach(item => {
+                    const val = monthData[item.id];
+                    let finalVal = val;
+                    if (val) {
+                        if (val.startsWith('0.')) {
+                            finalVal = val;
+                        } else {
+                            finalVal = val.replace(/\./g, '').replace(',', '.');
+                        }
+                    }
+                    
+                    payloads[groupKey].data.push({
+                        kategori: (item as any).dbName || item.name,
+                        bulan: k_bulan,
+                        target_nominal: finalVal
+                    });
+                });
+        });
 
         try {
-            await api.post('/rka', {
-                tahun,
-                type: tipe,
-                branch_name: branchName,
-                data: fullPayloadData
-            });
+            const promises = Object.values(payloads).map(payload => api.post('/rka', payload));
+            await Promise.all(promises);
             
             setPopupMessage({
                 type: 'success',
                 title: 'Berhasil Disimpan!',
-                message: `Data RKA untuk ${branchName} telah berhasil disimpan ke dalam sistem.`
+                message: 'Semua draf RKA telah berhasil disimpan ke dalam sistem. Gunakan koma (,) untuk menginput angka desimal.'
             });
+            setDraftData({}); // Clear draft upon success
+            // onSuccess tidak dipanggil di sini agar modal tetap terbuka
         } catch (error: any) {
             console.error('Failed to save RKA', error);
             if (error.response && error.response.data && error.response.data.errors) {
@@ -386,9 +451,19 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                                                 let sum = 0;
                                                                 (item as any).computeFrom.forEach((depId: string) => {
                                                                     const val = gridData[depId];
-                                                                    if (val) sum += parseInt(val.replace(/\./g, ''), 10);
+                                                                    if (val) {
+                                                                        if (val.startsWith('0.')) {
+                                                                            sum += parseFloat(val);
+                                                                        } else {
+                                                                            sum += parseFloat(val.replace(/\./g, '').replace(',', '.'));
+                                                                        }
+                                                                    }
                                                                 });
-                                                                return sum === 0 ? '0' : sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                                                
+                                                                if (sum === 0) return '0';
+                                                                const parts = sum.toString().split('.');
+                                                                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                                                                return (parts.length > 1 && parts[0] === '0') ? parts.join('.') : parts.join(',');
                                                             })()}
                                                         </div>
                                                     )}
@@ -487,7 +562,7 @@ export default function RkaFormModal({ isOpen, onClose, onSuccess }: RkaFormModa
                                         variant="outline"
                                         onClick={() => {
                                             setPopupMessage(null);
-                                            setGridData({});
+                                            setDraftData({});
                                             setBranchName('');
                                             onSuccess(); // This closes the modal from parent
                                         }}

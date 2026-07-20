@@ -157,9 +157,12 @@ export default function RkaPage() {
         }
     };
 
-    const formatNumber = (num: number) => {
-        if (!num) return '0';
-        return Math.round(Number(num)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const formatNumber = (num: any) => {
+        if (num === null || num === undefined || num === '') return '0';
+        const numStr = String(num);
+        const parts = numStr.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return parts.length > 1 ? parts.join('.') : parts[0];
     };
 
     const getMonthValue = (branchYear: string, item: any, itemIndex: number, monthFull: string) => {
@@ -184,14 +187,14 @@ export default function RkaPage() {
         } else {
             const dbName = item.dbName || item.name;
             const val = groupedData[branchYear]?.[dbName]?.[monthFull];
-            return val ? Number(val) : 0;
+            return val !== undefined && val !== null ? val : 0;
         }
     };
 
     const getRowTotal = (branchYear: string, item: any, itemIndex: number) => {
         let total = 0;
         MONTHS_FULL.forEach(m => {
-            total += getMonthValue(branchYear, item, itemIndex, m);
+            total += Number(getMonthValue(branchYear, item, itemIndex, m));
         });
         return total;
     };

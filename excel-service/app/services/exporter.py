@@ -1284,7 +1284,8 @@ def _write_bold_label(ws, row: int, row_data: dict, rka_vals: list,
         except (ValueError, TypeError):
             c.value = val if val == "-" else ""
 
-        c.number_format = '0.00%' if is_pct else "#,##0;-#,##0;\"-\""
+        is_recovery = "Recovery" in label
+        c.number_format = '0.00%' if is_pct else ("#,##0.000;-#,##0.000;\"-\"" if is_recovery else "#,##0;-#,##0;\"-\"")
         c.fill = fill_obj
         c.font = font_obj
         c.alignment = _align(h="right", v="center")
@@ -1301,7 +1302,8 @@ def _write_bold_label(ws, row: int, row_data: dict, rka_vals: list,
                 c.value = val
         else:
             c.value = ""
-        c.number_format = '0.00%' if is_pct else "#,##0;-#,##0;\"-\""
+        is_recovery = "Recovery" in label
+        c.number_format = '0.00%' if is_pct else ("#,##0.000;-#,##0.000;\"-\"" if is_recovery else "#,##0;-#,##0;\"-\"")
         c.fill = _fill(CLR_RKA_BG)
         c.font = font_obj
         c.alignment = _align(h="right", v="center")
