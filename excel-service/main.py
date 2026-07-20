@@ -7,16 +7,20 @@ import uuid
 import json
 import io
 
+try:
+    import orjson  # 10-100x faster than stdlib json
+    HAS_ORJSON = True
+except ImportError:
+    HAS_ORJSON = False
+
 from app.services.processor import process_files
 from app.services.exporter import export_to_excel
 from app.services.exporter_uker import export_uker_to_excel
 from app.services.exporter_produk import export_monitoring_produk_to_excel
+from app.services.pdf_exporter import export_dashboard_pdf
 import traceback
 import sys
 
-# Redirect stdout and stderr to prevent Broken Pipe errors in background tasks
-sys.stdout = open('/tmp/syncore_fastapi.log', 'a', buffering=1)
-sys.stderr = sys.stdout
 
 app = FastAPI(
     title="SYNCORE Excel Service",
@@ -64,7 +68,30 @@ async def process_ssa(
         )
         print("process_files completed.")
         
-        return {"success": True, "data": data_dict}
+        # Serialize to temp file — orjson is 10-100x faster than stdlib json
+        import tempfile
+        tmp_fd, out_path = tempfile.mkstemp(suffix='.json', prefix='processed_data_')
+        with os.fdopen(tmp_fd, 'wb') as f:
+            if HAS_ORJSON:
+                f.write(orjson.dumps(data_dict))
+            else:
+                f.write(json.dumps(data_dict, default=str).encode('utf-8'))
+        print(f"Serialization complete: {out_path}")
+            
+        stats = data_dict.get('__stats__', {})
+        # Only send lightweight metadata over HTTP (not the full uker/row data)
+        metadata_total = {
+            'periode_list': data_dict.get('Total AH Gunsar', {}).get('periode_list', []),
+            'rows': data_dict.get('Total AH Gunsar', {}).get('rows', [])[:5],  # only first 5 rows for period detection
+        }
+        
+        return {
+            "success": True, 
+            "data_file": out_path,
+            "stats": stats,
+            "metadata": {"Total AH Gunsar": metadata_total}
+        }
+
 
     except Exception as e:
         error_msg = traceback.format_exc()
@@ -130,6 +157,32 @@ async def export_dashboard(dashboard_type: str, payload: dict):
         return StreamingResponse(iterfile(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     except Exception as e:
         error_msg = traceback.format_exc()
-        print(f"Error in export_dashboard: {error_msg}")
+        safe_msg = error_msg.encode('ascii', 'replace').decode('ascii')
+        print(f"Error in export_dashboard: {safe_msg}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/export-pdf/{dashboard_type}")
+async def export_dashboard_pdf_endpoint(dashboard_type: str, payload: dict):
+    data_dict = payload.get('data')
+    period_name = payload.get('period_name', 'Periode Berjalan')
+    selected_periods = payload.get('selected_periods', [])
+    selected_components = payload.get('selected_components', [])
+    selected_rka = payload.get('selected_rka', [])
+    if not data_dict:
+        raise HTTPException(status_code=400, detail="Missing data field in payload")
+
+    try:
+        pdf_bytes = export_dashboard_pdf(data_dict, dashboard_type, period_name, selected_periods, selected_components, selected_rka)
+        def iterfile():
+            yield pdf_bytes
+            
+        return StreamingResponse(iterfile(), media_type="application/pdf")
+    except Exception as e:
+        error_msg = traceback.format_exc()
+        print(f"Error in export_pdf: {error_msg}")
+        with open("pdf_error.log", "w") as f:
+            f.write(error_msg)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 

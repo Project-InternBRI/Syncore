@@ -39,6 +39,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
                 'role' => $user->role,
                 'branch_name' => $user->branch_name,
             ]
@@ -62,6 +63,39 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout berhasil'
+        ]);
+    }
+
+    /**
+     * Update user profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        if ($request->has('phone')) {
+            $user->phone = $request->phone;
+        }
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'role' => $user->role,
+                'branch_name' => $user->branch_name,
+            ]
         ]);
     }
 }

@@ -50,6 +50,10 @@ class GenerateHistoryController extends Controller
 
     public function store(Request $request)
     {
+        // Prevent PHP timeouts and memory limits for large file processing
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
+
         $request->validate([
             'file_simpanan' => 'required|file',
             'file_pinjaman' => 'required|file',
@@ -62,7 +66,7 @@ class GenerateHistoryController extends Controller
         try {
             $pythonApiUrl = 'http://127.0.0.1:8003/api/process';
             
-            $http = Http::timeout(300); // 5 minutes timeout for large files
+            $http = Http::timeout(1200); // 20 minutes timeout for extremely large files
             
             // Attach files using fopen to prevent memory exhaustion and broken pipes
             $http = $http->attach('file_simpanan', fopen($request->file('file_simpanan')->getPathname(), 'r'), $request->file('file_simpanan')->getClientOriginalName());
@@ -87,8 +91,8 @@ class GenerateHistoryController extends Controller
             }
 
             $jsonResult = $response->json();
-            $dataDict = $jsonResult['data'];
-            $stats = $dataDict['__stats__'];
+            $stats = $jsonResult['stats'] ?? [];
+            $metadataDict = $jsonResult['metadata'] ?? [];
 
             // Extract period from "Total AH Gunsar" keys or periodes_sorted length
             // We can parse period from periode_terbaru or just get month and year from server time if not explicit
@@ -99,8 +103,8 @@ class GenerateHistoryController extends Controller
             $periodName = null;
             
             // Try to extract exact period from metadata (terbaru)
-            if (isset($dataDict['Total AH Gunsar']['rows'])) {
-                foreach ($dataDict['Total AH Gunsar']['rows'] as $row) {
+            if (isset($metadataDict['Total AH Gunsar']['rows'])) {
+                foreach ($metadataDict['Total AH Gunsar']['rows'] as $row) {
                     if (isset($row['row_type']) && $row['row_type'] === '__metadata__') {
                         if (isset($row['periode_refs']['terbaru'])) {
                             $terbaru = $row['periode_refs']['terbaru'];
@@ -121,7 +125,7 @@ class GenerateHistoryController extends Controller
                 
                 // Fallback if not found in metadata
                 if (!$periodName) {
-                    foreach ($dataDict['Total AH Gunsar']['rows'] as $row) {
+                    foreach ($metadataDict['Total AH Gunsar']['rows'] as $row) {
                         if (isset($row['values']) && count($row['values']) > 0) {
                             $latestKey = array_key_last($row['values']);
                             $periodName = $latestKey;
@@ -162,12 +166,21 @@ class GenerateHistoryController extends Controller
                 'status' => 'success',
             ]);
 
-            // Save snapshot JSON
-            GenerateSnapshot::create([
-                'generate_history_id' => $history->id,
-                'snapshot_type' => 'dashboard_kc', // saved as dashboard_kc to bypass Postgres ENUM constraint, actually contains all data
-                'snapshot_data' => $dataDict
-            ]);
+            // Save snapshot JSON bypassing Eloquent array cast to save memory and time
+            $dataFile = $jsonResult['data_file'] ?? null;
+            if ($dataFile && file_exists($dataFile)) {
+                $jsonString = file_get_contents($dataFile);
+                \Illuminate\Support\Facades\DB::table('generate_snapshots')->insert([
+                    'generate_history_id' => $history->id,
+                    'snapshot_type' => 'dashboard_kc',
+                    'snapshot_data' => $jsonString,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                @unlink($dataFile);
+            } else {
+                throw new \Exception("Data file not returned from python service");
+            }
 
             // Notify super admins
             NotificationService::sendToSuperAdmins(
@@ -222,6 +235,71 @@ class GenerateHistoryController extends Controller
             'success' => true,
             'data' => $history
         ]);
+    }
+
+    public function exportOptions($id)
+    {
+        try {
+            $snapshot = GenerateSnapshot::where('generate_history_id', $id)->first();
+            if (!$snapshot) {
+                return response()->json(['success' => false, 'message' => 'Data tidak ditemukan.'], 404);
+            }
+            
+            $snapshotData = is_string($snapshot->snapshot_data) ? json_decode($snapshot->snapshot_data, true) : $snapshot->snapshot_data;
+            
+            $periods = [];
+            $components = [];
+            
+            if (isset($snapshotData['Total AH Gunsar']['periode_list'])) {
+                $periods = $snapshotData['Total AH Gunsar']['periode_list'];
+            }
+            
+            if (isset($snapshotData['Total AH Gunsar']['rows'])) {
+                foreach ($snapshotData['Total AH Gunsar']['rows'] as $r) {
+                    if (isset($r['label']) && $r['label'] !== '') {
+                        $components[] = $r['label'];
+                    }
+                }
+                $components = array_values(array_unique($components));
+            }
+            
+            if (empty($periods)) {
+                foreach ($snapshotData as $key => $val) {
+                    if (is_array($val) && isset($val['rows']) && count($val['rows']) > 0) {
+                        foreach ($val['rows'] as $r) {
+                            if (isset($r['values']) && is_array($r['values']) && !empty($r['values'])) {
+                                $periods = array_keys($r['values']);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (empty($components)) {
+                foreach ($snapshotData as $key => $val) {
+                    if (is_array($val) && isset($val['rows']) && count($val['rows']) > 0) {
+                        foreach ($val['rows'] as $r) {
+                            if (isset($r['label']) && $r['label'] !== '') {
+                                $components[] = $r['label'];
+                            }
+                        }
+                        $components = array_values(array_unique($components));
+                        if (!empty($components)) break;
+                    }
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'periods' => $periods,
+                    'components' => $components
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function bulkDestroy(Request $request)
@@ -370,6 +448,82 @@ class GenerateHistoryController extends Controller
     }
 
     
+    public function exportPdf(Request $request)
+    {
+        $request->validate([
+            'generate_history_id' => 'required|exists:generate_histories,id',
+            'snapshot_type' => 'required|string', 
+        ]);
+
+        $historyId = $request->generate_history_id;
+        $dashboardType = $request->snapshot_type; // 'kc', 'kcp', 'unit'
+
+        $history = GenerateHistory::findOrFail($historyId);
+        $snapshot = GenerateSnapshot::where('generate_history_id', $historyId)->first();
+
+        if (!$snapshot) {
+            return response()->json(['success' => false, 'message' => 'Snapshot data not found.'], 404);
+        }
+
+        try {
+            $snapshotData = is_string($snapshot->snapshot_data) ? json_decode($snapshot->snapshot_data, true) : $snapshot->snapshot_data;
+            
+            $rkaRecords = \App\Models\Rka::where('tahun', $history->period_year)->get()->toArray();
+            if (!is_array($snapshotData)) {
+                $snapshotData = [];
+            }
+            $snapshotData['__rka__'] = $rkaRecords;
+
+            $pythonApiUrl = "http://127.0.0.1:8003/api/export-pdf/{$dashboardType}";
+            $response = Http::timeout(300)->post($pythonApiUrl, [
+                'data' => $snapshotData,
+                'period_name' => $history->period_name ?: 'Periode Berjalan',
+                'selected_periods' => $request->input('selected_periods', []),
+                'selected_components' => $request->input('selected_components', []),
+                'selected_rka' => $request->input('selected_rka', [])
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal meng-generate PDF.',
+                    'error' => $response->body()
+                ], 500);
+            }
+
+            // Return file download
+            $fileContent = $response->body();
+            
+            $dateString = $history->period_name;
+            if (!$dateString) {
+                $monthNames = ['01'=>'Januari', '02'=>'Februari', '03'=>'Maret', '04'=>'April', '05'=>'Mei', '06'=>'Juni', '07'=>'Juli', '08'=>'Agustus', '09'=>'September', '10'=>'Oktober', '11'=>'November', '12'=>'Desember'];
+                $month = $monthNames[str_pad($history->period_month, 2, '0', STR_PAD_LEFT)] ?? $history->period_month;
+                $year = $history->period_year;
+                $lastDay = date('t', strtotime("$year-{$history->period_month}-01"));
+                $dateString = "{$lastDay} {$month} {$year}";
+            }
+            
+            $prefix = '';
+            if ($dashboardType === 'kc') $prefix = 'Dashboard KC';
+            elseif ($dashboardType === 'kcp') $prefix = 'Dashboard KCP';
+            elseif ($dashboardType === 'unit') $prefix = 'Dashboard Unit';
+            
+            $fileName = "{$prefix} Presentasi AH Gunsar {$dateString}.pdf";
+
+            return response($fileContent, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem saat export PDF.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
         public function previewTabs($id, $type)
     {
         $snapshot = \App\Models\GenerateSnapshot::where('generate_history_id', $id)->first();

@@ -426,6 +426,16 @@ def _sum_saldo(df: pd.DataFrame, wilayah: str, label: str,
     AND _wilayah=wilayah AND _label=label
     Hasil dalam JUTA RUPIAH.
     """
+    j = jenis.lower() if jenis else ''
+    s = segmentasi.lower() if segmentasi else ''
+
+    if hasattr(df, 'attrs') and 'grouped_dict' in df.attrs:
+        if wilayah == '__TOTAL__':
+            total = df.attrs['grouped_dict_total'].get((label, j, s), 0.0)
+        else:
+            total = df.attrs['grouped_dict'].get((wilayah, label, j, s), 0.0)
+        return float(total) / 1_000_000
+
     if wilayah == '__TOTAL__':
         mask = df['_wilayah'].isin(WILAYAH_ORDER)
     else:
@@ -600,6 +610,25 @@ def classify_pinjaman_exact(row) -> str | None:
         
     return None
 
+
+def _classify_pinjaman_vectorized(df: pd.DataFrame) -> pd.Series:
+    """
+    Vectorized versi classify_pinjaman_exact — ribuan kali lebih cepat dari apply(axis=1).
+    """
+    import re
+    norm_produk = df['Produk'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
+    norm_segmen = df['SEGMEN_2025'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
+
+    mikro_prods = {'brigunamikro', 'kupedes', 'kurmikro', 'kreditmikrokpp', 'mikrocashcollateral', 'kreditmikrokurritel2015'}
+    konsumer_prods = {'brigunaritel', 'kpr'}
+
+    result = pd.Series(None, index=df.index, dtype=object)
+    result = result.where(~(norm_produk.isin(mikro_prods) & (norm_segmen == 'micro')), 'Mikro')
+    result = result.where(~((norm_produk == 'kecilkomersial') & (norm_segmen == 'small')), 'Small')
+    result = result.where(~(norm_produk.isin(konsumer_prods) & (norm_segmen == 'consumer')), 'Konsumer')
+    return result
+
+
 def prepare_pinjaman(df: pd.DataFrame) -> pd.DataFrame:
     '''
     Melakukan preprocessing data pinjaman, mencakup pembersihan dan parsing Baki Debet.
@@ -607,13 +636,13 @@ def prepare_pinjaman(df: pd.DataFrame) -> pd.DataFrame:
     '''
     df = df.copy()
     
-    # 1. Bersihkan whitespace dan klasifikasikan segmen_dashboard
+    # 1. Bersihkan whitespace dan klasifikasikan segmen_dashboard (VECTORIZED)
     for col in ['SEGMEN_2025', 'Produk', 'Nama Cabang']:
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
             
     if 'Produk' in df.columns and 'SEGMEN_2025' in df.columns:
-        df['segmen_dashboard'] = df.apply(classify_pinjaman_exact, axis=1)
+        df['segmen_dashboard'] = _classify_pinjaman_vectorized(df)
     
     # 2. Konversi Baki Debet ke float
     def parse_num(v):
@@ -663,15 +692,21 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     if 'Nama Cabang' not in df_pinj.columns or 'Month, Day, Year of Periode' not in df_pinj.columns:
         return _zero_result()
 
-    # Filter KC
-    if kc_keyword == '__TOTAL__':
-        mask_kc = df_pinj['_wilayah'].isin(WILAYAH_ORDER)
+    if hasattr(df_pinj, 'attrs') and 'grouped_dict' in df_pinj.attrs:
+        if kc_keyword == '__TOTAL__':
+            df = df_pinj.attrs['grouped_dict_total'].get(tanggal, pd.DataFrame())
+        else:
+            df = df_pinj.attrs['grouped_dict'].get((kc_keyword, tanggal), pd.DataFrame())
     else:
-        mask_kc = df_pinj['_wilayah'] == kc_keyword
-        
-    # Filter tanggal
-    mask_tgl = (df_pinj['_label'] == tanggal)
-    df = df_pinj[mask_kc & mask_tgl].copy()
+        # Filter KC
+        if kc_keyword == '__TOTAL__':
+            mask_kc = df_pinj['_wilayah'].isin(WILAYAH_ORDER)
+        else:
+            mask_kc = df_pinj['_wilayah'] == kc_keyword
+            
+        # Filter tanggal
+        mask_tgl = (df_pinj['_label'] == tanggal)
+        df = df_pinj[mask_kc & mask_tgl].copy()
     
     if df.empty:
         return _zero_result()
@@ -855,7 +890,7 @@ def _build_rows(wilayah: str, df_s: pd.DataFrame, df_p: pd.DataFrame,
     for lbl, tgl in periodes_sorted:
         hasil = hitung_pinjaman_kc(df_p, wilayah, lbl)
         pinjaman_data[lbl] = hasil
-        log_pinjaman_debug(df_p, wilayah, lbl, hasil)
+        # log_pinjaman_debug: dinonaktifkan untuk mempercepat produksi
 
     def p_row(row_type: str, label: str, key: str):
         vals = {}
@@ -1222,17 +1257,35 @@ def process_files(
     print(f"[KOLOM P] KC={kc_col_p}, Segmen={segmen_col}, "
           f"Kolekt={kolekt_col}, Baki={baki_col}, Periode={periode_p}")
 
-    # ── 4. KONVERSI NUMERIK ───────────────────────────────────────
+    # ── 4. KONVERSI NUMERIK (VECTORIZED) ─────────────────────────
     cb(28, "Konversi nilai numerik...")
 
-    df_s_all[saldo_col] = df_s_all[saldo_col].apply(parse_numeric)
-    df_p_all[baki_col] = df_p_all[baki_col].apply(parse_baki_debet)
+    def _vectorized_parse_numeric(series: pd.Series) -> pd.Series:
+        cleaned = series.astype(str).str.strip()
+        # Format Indonesia: hapus titik ribuan, ganti koma desimal ke titik
+        cleaned_std = cleaned.str.replace(r'\.(?=\d{3})', '', regex=True).str.replace(',', '.', regex=False)
+        result = pd.to_numeric(cleaned_std, errors='coerce')
+        # Fallback hanya untuk baris yang masih NaN
+        failed = result.isna() & series.notna()
+        if failed.any():
+            result[failed] = series[failed].apply(parse_numeric)
+        return result.fillna(0.0)
 
-    # ── 5. MAP WILAYAH ────────────────────────────────────────────
+    df_s_all[saldo_col] = _vectorized_parse_numeric(df_s_all[saldo_col])
+    df_p_all[baki_col] = _vectorized_parse_numeric(df_p_all[baki_col])
+
+    # ── 5. MAP WILAYAH (VECTORIZED) ───────────────────────────────
     cb(32, "Mapping wilayah KC...")
 
-    df_s_all['_wilayah'] = df_s_all[kc_col_s].apply(map_to_wilayah)
-    df_p_all['_wilayah'] = df_p_all[kc_col_p].apply(map_to_wilayah)
+    def _vectorized_map_wilayah(series: pd.Series) -> pd.Series:
+        s_lower = series.astype(str).str.lower()
+        result = pd.Series(None, index=series.index, dtype=object)
+        for keyword, wilayah in WILAYAH_KEYWORD_MAP.items():
+            result = result.where(~s_lower.str.contains(keyword, na=False, regex=False), wilayah)
+        return result
+
+    df_s_all['_wilayah'] = _vectorized_map_wilayah(df_s_all[kc_col_s])
+    df_p_all['_wilayah'] = _vectorized_map_wilayah(df_p_all[kc_col_p])
 
     # Log KC tidak dikenal
     unk_s = df_s_all[df_s_all['_wilayah'].isna()][kc_col_s].unique()
@@ -1295,15 +1348,23 @@ def process_files(
     # ── 7. PARSE TANGGAL & KUMPULKAN PERIODE ─────────────────────
     cb(40, "Parsing tanggal periode...")
 
-    # Simpanan
+    # Simpanan — vectorized parsing (jauh lebih cepat dari apply)
+    def _parse_tanggal_vectorized(series: pd.Series) -> pd.Series:
+        result = pd.to_datetime(series, errors='coerce', dayfirst=True)
+        # Untuk value yang masih NaT, coba parse format Indonesia row-by-row (hanya pada yang gagal)
+        failed_mask = result.isna() & series.notna()
+        if failed_mask.any():
+            result[failed_mask] = series[failed_mask].apply(parse_tanggal_id)
+        return result
+
     if periode_s and periode_s in df_s.columns:
-        df_s['_tanggal'] = df_s[periode_s].apply(parse_tanggal_id)
+        df_s['_tanggal'] = _parse_tanggal_vectorized(df_s[periode_s])
     else:
         df_s['_tanggal'] = None
 
     # Pinjaman
     if periode_p and periode_p in df_p.columns:
-        df_p['_tanggal'] = df_p[periode_p].apply(parse_tanggal_id)
+        df_p['_tanggal'] = _parse_tanggal_vectorized(df_p[periode_p])
     else:
         df_p['_tanggal'] = None
 
@@ -1330,17 +1391,26 @@ def process_files(
     df_s['_label'] = df_s['_tanggal'].apply(_apply_lbl)
     df_p['_label'] = df_p['_tanggal'].apply(_apply_lbl)
 
-    for idx, row in df_s.dropna(subset=['_tanggal']).iterrows():
-        lbl = row['_label']
-        tgl = row['_tanggal']
-        if lbl not in tgl_set or tgl > tgl_set[lbl]:
-            tgl_set[lbl] = tgl
+    # --- PRE-AGGREGATION OPTIMIZATION ---
+    df_s['_jenis_lower'] = df_s['_jenis'].str.lower()
+    df_s['_seg_lower'] = df_s['_segmentasi'].str.lower()
+    df_s.attrs['grouped_dict'] = df_s.groupby(['_wilayah', '_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
+    df_s_tot = df_s[df_s['_wilayah'].isin(WILAYAH_ORDER)]
+    df_s.attrs['grouped_dict_total'] = df_s_tot.groupby(['_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
+    
+    df_p.attrs['grouped_dict'] = {k: v for k, v in df_p.groupby(['_wilayah', '_label'])}
+    df_p_tot = df_p[df_p['_wilayah'].isin(WILAYAH_ORDER)]
+    df_p.attrs['grouped_dict_total'] = {k: v for k, v in df_p_tot.groupby(['_label'])}
+    # ------------------------------------
 
-    for idx, row in df_p.dropna(subset=['_tanggal']).iterrows():
-        lbl = row['_label']
-        tgl = row['_tanggal']
-        if lbl not in tgl_set or tgl > tgl_set[lbl]:
-            tgl_set[lbl] = tgl
+    # VECTORIZED: ganti iterrows() yang lambat dengan groupby().max()
+    for df_tmp in [df_s, df_p]:
+        df_valid = df_tmp.dropna(subset=['_tanggal'])
+        if not df_valid.empty:
+            grp = df_valid.groupby('_label')['_tanggal'].max()
+            for lbl, tgl in grp.items():
+                if lbl not in tgl_set or tgl > tgl_set[lbl]:
+                    tgl_set[lbl] = tgl
 
     # Urutkan lama → baru berdasarkan max timestamp
     # periodes_sorted will be list of (label, timestamp)
@@ -1392,8 +1462,7 @@ def process_files(
 
         rows = _build_rows(wilayah, df_s, df_p,
                            periodes_sorted, saldo_col, baki_col)
-
-        _attach_growth(rows, periodes_sorted)
+        # NOTE: _attach_growth sudah dipanggil di dalam _build_rows, tidak perlu panggil lagi
 
         result[wilayah] = {
             'rows': rows,

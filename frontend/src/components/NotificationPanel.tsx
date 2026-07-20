@@ -29,7 +29,10 @@ export default function NotificationPanel() {
 
     // Polling logic for both unread count and toasts
     useEffect(() => {
+        let isFetching = false; // guard to prevent concurrent requests
         const fetchUpdates = async () => {
+            if (isFetching) return; // skip if previous request still in-flight
+            isFetching = true;
             try {
                 // Fetch latest notifications to check for new ones
                 const res = await api.get('/notifications?per_page=5');
@@ -90,7 +93,9 @@ export default function NotificationPanel() {
                     }
                 }
             } catch (error) {
-                console.error('Failed to fetch updates:', error);
+                // Silently ignore network errors during heavy operations (e.g. generate)
+            } finally {
+                isFetching = false;
             }
         };
 
@@ -98,6 +103,7 @@ export default function NotificationPanel() {
         const interval = setInterval(fetchUpdates, 30000); // Check every 30s
         return () => clearInterval(interval);
     }, [router]);
+
 
     // Fetch notifications when panel opens
     useEffect(() => {

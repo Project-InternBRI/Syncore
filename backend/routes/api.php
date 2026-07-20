@@ -11,6 +11,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
+    Route::put('/user', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Pengguna Routes
@@ -20,9 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/riwayat-generate', [GenerateHistoryController::class, 'index']);
     Route::post('/riwayat-generate', [GenerateHistoryController::class, 'store']); // For simulation
     Route::get('/riwayat-generate/latest', [GenerateHistoryController::class, 'latest']);
+    Route::get('/riwayat-generate/{id}/export-options', [GenerateHistoryController::class, 'exportOptions']);
     Route::get('/riwayat-generate/{id}/preview-tabs/{type}', [GenerateHistoryController::class, 'previewTabs']);
     Route::get('/riwayat-generate/{id}/preview-data/{type}', [GenerateHistoryController::class, 'previewData']);
     Route::post('/riwayat-generate/export', [GenerateHistoryController::class, 'export']);
+    Route::post('/riwayat-generate/export-pdf', [GenerateHistoryController::class, 'exportPdf']);
     Route::delete('/riwayat-generate/bulk', [GenerateHistoryController::class, 'bulkDestroy']);
     Route::delete('/riwayat-generate/{id}', [GenerateHistoryController::class, 'destroy']);
     

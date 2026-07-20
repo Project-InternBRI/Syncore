@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { UserCircle2, Mail, Building2, ShieldAlert, KeyRound, Fingerprint, LogOut, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { UserCircle2, Mail, Building2, ShieldAlert, KeyRound, Fingerprint, LogOut, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
@@ -10,18 +10,49 @@ export default function ProfilPage() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [isMounted, setIsMounted] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [editForm, setEditForm] = useState({
+        name: '',
+        email: '',
+        phone: ''
+    });
 
     useEffect(() => {
         setIsMounted(true);
         const userData = Cookies.get('user_data');
         if (userData) {
             try {
-                setUser(JSON.parse(userData));
+                const parsed = JSON.parse(userData);
+                setUser(parsed);
+                setEditForm({
+                    name: parsed.name || '',
+                    email: parsed.email || '',
+                    phone: parsed.phone || ''
+                });
             } catch (e) {
                 console.error("Failed to parse user data", e);
             }
         }
     }, []);
+
+    const handleSaveProfile = async () => {
+        setIsLoading(true);
+        try {
+            const response = await api.put('/user', editForm);
+            if (response.data?.user) {
+                setUser(response.data.user);
+                Cookies.set('user_data', JSON.stringify(response.data.user));
+                setIsEditing(false);
+            }
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            alert('Gagal memperbarui profil. Pastikan email belum digunakan.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
 
     const handleLogout = async () => {
         try {
@@ -143,30 +174,89 @@ export default function ProfilPage() {
                                     <h3 className="text-2xl font-bold text-slate-800 tracking-tight">Informasi Personal</h3>
                                     <p className="text-sm font-medium text-slate-500 mt-1">Data identitas utama yang terdaftar pada sistem.</p>
                                 </div>
-                                <button className="px-5 py-2.5 bg-[#f4f7fb] text-[#1a2f5c] hover:bg-[#1a2f5c] hover:text-white rounded-xl font-bold text-sm transition-all shadow-sm">
-                                    Edit Data
-                                </button>
+                                <div className="flex items-center">
+                                    {isEditing && (
+                                        <button 
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                setEditForm({
+                                                    name: user?.name || '',
+                                                    email: user?.email || '',
+                                                    phone: user?.phone || ''
+                                                });
+                                            }}
+                                            disabled={isLoading}
+                                            className="mr-3 px-5 py-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50"
+                                        >
+                                            Batal
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}
+                                        disabled={isLoading}
+                                        className="px-5 py-2.5 bg-[#f4f7fb] text-[#1a2f5c] hover:bg-[#1a2f5c] hover:text-white rounded-xl font-bold text-sm transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        {isEditing ? 'Simpan Data' : 'Edit Data'}
+                                    </button>
+                                </div>
                             </div>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Nama Lengkap</label>
-                                    <div className="px-5 py-3.5 bg-[#f8faff] border border-slate-200/80 rounded-xl text-[15px] text-slate-800 font-semibold shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
-                                        {user?.name || '-'}
-                                    </div>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                            className="w-full px-5 py-3.5 bg-white border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl text-[15px] text-slate-800 font-semibold shadow-sm transition-all outline-none"
+                                            placeholder="Masukkan nama lengkap"
+                                        />
+                                    ) : (
+                                        <div className="px-5 py-3.5 bg-[#f8faff] border border-slate-200/80 rounded-xl text-[15px] text-slate-800 font-semibold shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                            {user?.name || '-'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Alamat Email</label>
-                                    <div className="px-5 py-3.5 bg-[#f8faff] border border-slate-200/80 rounded-xl text-[15px] text-slate-800 font-semibold shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
-                                        {user?.email || '-'}
-                                    </div>
+                                    {isEditing ? (
+                                        <input
+                                            type="email"
+                                            value={editForm.email}
+                                            onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                                            className="w-full px-5 py-3.5 bg-white border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl text-[15px] text-slate-800 font-semibold shadow-sm transition-all outline-none"
+                                            placeholder="Masukkan email valid"
+                                        />
+                                    ) : (
+                                        <div className="px-5 py-3.5 bg-[#f8faff] border border-slate-200/80 rounded-xl text-[15px] text-slate-800 font-semibold shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                                            {user?.email || '-'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Nomor Telepon</label>
-                                    <div className="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[15px] text-slate-400 font-semibold flex items-center justify-between cursor-not-allowed">
-                                        Belum Diatur
-                                        <span className="text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">Opsional</span>
-                                    </div>
+                                    {isEditing ? (
+                                        <input
+                                            type="tel"
+                                            value={editForm.phone}
+                                            onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                                            className="w-full px-5 py-3.5 bg-white border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl text-[15px] text-slate-800 font-semibold shadow-sm transition-all outline-none"
+                                            placeholder="Contoh: 081234567890"
+                                        />
+                                    ) : (
+                                        <div className="px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl text-[15px] text-slate-400 font-semibold flex items-center justify-between cursor-default">
+                                            {user?.phone ? (
+                                                <span className="text-slate-800">{user.phone}</span>
+                                            ) : (
+                                                <>
+                                                    Belum Diatur
+                                                    <span className="text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider">Opsional</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-2.5">
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Zona Waktu</label>
