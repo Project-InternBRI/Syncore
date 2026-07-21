@@ -333,46 +333,16 @@ def _read_ssa_csv(path: str, label: str) -> pd.DataFrame:
         
         for enc in encodings:
             try:
-                with open(path, 'r', encoding=enc) as f:
-                    lines = f.readlines()
-                    
-                if not lines:
-                    continue
-                    
-                header = lines[0].strip().split(';')
-                header_len = len(header)
-                
-                fixed_lines = [lines[0].strip()]
-                for i in range(1, len(lines)):
-                    line = lines[i].strip()
-                    if not line:
-                        continue
-                    parts = line.split(';')
-                    
-                    if len(parts) > header_len:
-                        for j in range(1, len(parts)-1):
-                            if parts[j].strip() == '':
-                                del parts[j]
-                                if len(parts) == header_len:
-                                    break
-                        if len(parts) > header_len:
-                            parts = parts[:header_len]
-                            
-                    elif len(parts) < header_len:
-                        parts.extend([''] * (header_len - len(parts)))
-                        
-                    fixed_lines.append(';'.join(parts))
-                    
-                fixed_csv = '\n'.join(fixed_lines)
-                
+                # Optimized CSV reading using pandas C engine directly
                 df = pd.read_csv(
-                    io.StringIO(fixed_csv),
+                    path,
                     sep=';',
                     dtype=str,
+                    encoding=enc,
                     skipinitialspace=True,
                     low_memory=False,
+                    on_bad_lines='skip' # Automatically skip bad lines instead of manual parsing
                 )
-                
                 if len(df.columns) >= 3:
                     break
                 df = None
@@ -429,11 +399,11 @@ def _sum_saldo(df: pd.DataFrame, wilayah: str, label: str,
     j = jenis.lower() if jenis else ''
     s = segmentasi.lower() if segmentasi else ''
 
-    if hasattr(df, 'attrs') and 'grouped_dict' in df.attrs:
+    if hasattr(df, '_syncore_cache') and 'grouped_dict' in df._syncore_cache:
         if wilayah == '__TOTAL__':
-            total = df.attrs['grouped_dict_total'].get((label, j, s), 0.0)
+            total = df._syncore_cache['grouped_dict_total'].get((label, j, s), 0.0)
         else:
-            total = df.attrs['grouped_dict'].get((wilayah, label, j, s), 0.0)
+            total = df._syncore_cache['grouped_dict'].get((wilayah, label, j, s), 0.0)
         return float(total) / 1_000_000
 
     if wilayah == '__TOTAL__':
@@ -481,7 +451,7 @@ def build_pinjaman_rows(df_pinj, wilayah, label, baki_col):
     else:
         mask_kc = (df_pinj['_wilayah'] == wilayah)
     mask_tgl = (df_pinj['_label'] == label) if '_label' in df_pinj.columns else (df_pinj['_tanggal'] == label)
-    df = df_pinj[mask_kc & mask_tgl].copy()
+    df = df_pinj[mask_kc & mask_tgl]
     
     if df.empty:
         return {
@@ -614,18 +584,14 @@ def classify_pinjaman_exact(row) -> str | None:
 def _classify_pinjaman_vectorized(df: pd.DataFrame) -> pd.Series:
     """
     Vectorized versi classify_pinjaman_exact — ribuan kali lebih cepat dari apply(axis=1).
+    Hanya menggunakan SEGMEN_2025 untuk menentukan segmen dashboard (sesuai logic asli).
     """
-    import re
-    norm_produk = df['Produk'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
     norm_segmen = df['SEGMEN_2025'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
 
-    mikro_prods = {'brigunamikro', 'kupedes', 'kurmikro', 'kreditmikrokpp', 'mikrocashcollateral', 'kreditmikrokurritel2015'}
-    konsumer_prods = {'brigunaritel', 'kpr'}
-
     result = pd.Series(None, index=df.index, dtype=object)
-    result = result.where(~(norm_produk.isin(mikro_prods) & (norm_segmen == 'micro')), 'Mikro')
-    result = result.where(~((norm_produk == 'kecilkomersial') & (norm_segmen == 'small')), 'Small')
-    result = result.where(~(norm_produk.isin(konsumer_prods) & (norm_segmen == 'consumer')), 'Konsumer')
+    result = result.where(norm_segmen != 'micro', 'Mikro')
+    result = result.where(norm_segmen != 'small', 'Small')
+    result = result.where(norm_segmen != 'consumer', 'Konsumer')
     return result
 
 
@@ -634,6 +600,9 @@ def prepare_pinjaman(df: pd.DataFrame) -> pd.DataFrame:
     Melakukan preprocessing data pinjaman, mencakup pembersihan dan parsing Baki Debet.
     Hanya membuang baris yang Kolektabilitas-nya = 0, atau Baki Debet-nya NaN/0.
     '''
+    if 'segmen_dashboard' in df.columns:
+        return df
+        
     df = df.copy()
     
     # 1. Bersihkan whitespace dan klasifikasikan segmen_dashboard (VECTORIZED)
@@ -644,17 +613,10 @@ def prepare_pinjaman(df: pd.DataFrame) -> pd.DataFrame:
     if 'Produk' in df.columns and 'SEGMEN_2025' in df.columns:
         df['segmen_dashboard'] = _classify_pinjaman_vectorized(df)
     
-    # 2. Konversi Baki Debet ke float
-    def parse_num(v):
-        s = str(v).strip()
-        try: return float(s)
-        except:
-            s = s.replace('.','').replace(',','.')
-            try: return float(s)
-            except: return 0.0
-    
+    # 2. Konversi Baki Debet ke float (Optimized: gunakan to_numeric)
     if 'Baki Debet' in df.columns:
-        df['Baki Debet'] = df['Baki Debet'].apply(parse_num)
+        if df['Baki Debet'].dtype != float and df['Baki Debet'].dtype != int:
+            df['Baki Debet'] = pd.to_numeric(df['Baki Debet'].astype(str).str.replace(r'\.(?=\d{3})', '', regex=True).str.replace(',', '.', regex=False), errors='coerce').fillna(0.0)
     
     # 3. Konversi Kolektabilitas ke integer
     if 'Kolektabilitas One Obligor' in df.columns:
@@ -669,6 +631,10 @@ def prepare_pinjaman(df: pd.DataFrame) -> pd.DataFrame:
     # 5. Exclude Baki Debet NaN atau 0
     if 'Baki Debet' in df.columns:
         df = df[df['Baki Debet'].notna() & (df['Baki Debet'] != 0)].copy()
+        
+    # 6. Pre-calculate normalized produk for fast matching
+    if 'Produk' in df.columns:
+        df['norm_produk'] = df['Produk'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
     
     return df
 
@@ -692,11 +658,11 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     if 'Nama Cabang' not in df_pinj.columns or 'Month, Day, Year of Periode' not in df_pinj.columns:
         return _zero_result()
 
-    if hasattr(df_pinj, 'attrs') and 'grouped_dict' in df_pinj.attrs:
+    if hasattr(df_pinj, '_syncore_cache') and 'grouped_dict' in df_pinj._syncore_cache:
         if kc_keyword == '__TOTAL__':
-            df = df_pinj.attrs['grouped_dict_total'].get(tanggal, pd.DataFrame())
+            df = df_pinj._syncore_cache['grouped_dict_total'].get(tanggal, pd.DataFrame())
         else:
-            df = df_pinj.attrs['grouped_dict'].get((kc_keyword, tanggal), pd.DataFrame())
+            df = df_pinj._syncore_cache['grouped_dict'].get((kc_keyword, tanggal), pd.DataFrame())
     else:
         # Filter KC
         if kc_keyword == '__TOTAL__':
@@ -706,7 +672,7 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
             
         # Filter tanggal
         mask_tgl = (df_pinj['_label'] == tanggal)
-        df = df_pinj[mask_kc & mask_tgl].copy()
+        df = df_pinj[mask_kc & mask_tgl]
     
     if df.empty:
         return _zero_result()
@@ -720,8 +686,8 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     m_consumer = df['segmen_dashboard'] == 'Konsumer'
     m_micro    = df['segmen_dashboard'] == 'Mikro'
     
-    # Mask untuk breakdown produk Konsumer dengan normalisasi sama persis seperti classify_pinjaman_exact
-    norm_produk = df['Produk'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True)
+    # Mask untuk breakdown produk Konsumer
+    norm_produk = df.get('norm_produk', df['Produk'].astype(str).str.lower().str.replace(r'[\s\-]', '', regex=True))
     m_kpr     = m_consumer & (norm_produk == 'kpr')
     m_briguna = m_consumer & (norm_produk == 'brigunaritel')
     
@@ -1316,16 +1282,16 @@ def process_files(
     df_s['_segmentasi'] = df_s[seg_col].astype(str).str.strip()
 
     # Produk (pinjaman)
-    produk_col = _find_col(df_p, "Produk", "PRODUK", "produk")
+    produk_col = _find_col(df_p_all, "Produk", "PRODUK", "produk")
     if produk_col is None:
         raise RuntimeError("Kolom 'Produk' tidak ditemukan di SSA Pinjaman.")
         
-    segmen_col_p = _find_col(df_p, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN")
+    segmen_col_p = _find_col(df_p_all, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN")
     if segmen_col_p is None:
         raise RuntimeError("Kolom 'SEGMEN_2025' tidak ditemukan di SSA Pinjaman.")
 
-    # Rename dynamic columns to standard names for prepare_pinjaman
-    df_p.rename(columns={
+    # Rename dynamic columns to standard names for prepare_pinjaman on FULL dataset
+    df_p_all.rename(columns={
         produk_col: 'Produk',
         segmen_col_p: 'SEGMEN_2025',
         kolekt_col: 'Kolektabilitas One Obligor',
@@ -1334,8 +1300,16 @@ def process_files(
         periode_p: 'Month, Day, Year of Periode'
     }, inplace=True)
     
-    # Process Pinjaman completely using user's prepare_pinjaman
-    df_p = prepare_pinjaman(df_p)
+    # Update variables to match renamed columns
+    kc_col_p = 'Nama Cabang'
+    periode_p = 'Month, Day, Year of Periode'
+    baki_col = 'Baki Debet'
+    
+    # Process Pinjaman completely using user's prepare_pinjaman on FULL dataset
+    df_p_all = prepare_pinjaman(df_p_all)
+    
+    # Update df_p from the prepared df_p_all
+    df_p = df_p_all[df_p_all['_wilayah'].notna()].copy()
 
     # Update variable names after renaming so rest of code works
     kc_col_p = 'Nama Cabang'
@@ -1350,23 +1324,27 @@ def process_files(
 
     # Simpanan — vectorized parsing (jauh lebih cepat dari apply)
     def _parse_tanggal_vectorized(series: pd.Series) -> pd.Series:
-        result = pd.to_datetime(series, errors='coerce', dayfirst=True)
-        # Untuk value yang masih NaT, coba parse format Indonesia row-by-row (hanya pada yang gagal)
-        failed_mask = result.isna() & series.notna()
-        if failed_mask.any():
-            result[failed_mask] = series[failed_mask].apply(parse_tanggal_id)
-        return result
+        # Optimasi ekstrim: hanya parse nilai unik (biasanya < 10 nilai dalam satu file)
+        unique_vals = series.dropna().unique()
+        parsed_dict = {val: parse_tanggal_id(val) for val in unique_vals}
+        return series.map(parsed_dict)
 
-    if periode_s and periode_s in df_s.columns:
-        df_s['_tanggal'] = _parse_tanggal_vectorized(df_s[periode_s])
+    if periode_s and periode_s in df_s_all.columns:
+        df_s_all['_tanggal'] = _parse_tanggal_vectorized(df_s_all[periode_s])
     else:
-        df_s['_tanggal'] = None
+        df_s_all['_tanggal'] = None
+    
+    # Update df_s from df_s_all
+    df_s['_tanggal'] = df_s_all.loc[df_s.index, '_tanggal']
 
     # Pinjaman
-    if periode_p and periode_p in df_p.columns:
-        df_p['_tanggal'] = _parse_tanggal_vectorized(df_p[periode_p])
+    if periode_p and periode_p in df_p_all.columns:
+        df_p_all['_tanggal'] = _parse_tanggal_vectorized(df_p_all[periode_p])
     else:
-        df_p['_tanggal'] = None
+        df_p_all['_tanggal'] = None
+        
+    # Update df_p from df_p_all
+    df_p['_tanggal'] = df_p_all.loc[df_p.index, '_tanggal']
 
     # Kumpulkan semua tanggal unik berdasarkan label
     tgl_set: dict[str, pd.Timestamp] = {}
@@ -1388,19 +1366,32 @@ def process_files(
                 is_latest = True
         return format_label(ts, is_latest_month=is_latest)
 
-    df_s['_label'] = df_s['_tanggal'].apply(_apply_lbl)
-    df_p['_label'] = df_p['_tanggal'].apply(_apply_lbl)
+    unique_tgl_s = df_s_all['_tanggal'].dropna().unique()
+    map_lbl_s = {ts: _apply_lbl(ts) for ts in unique_tgl_s}
+    map_lbl_s[pd.NaT] = "Unknown"
+    df_s_all['_label'] = df_s_all['_tanggal'].map(map_lbl_s)
+    
+    unique_tgl_p = df_p_all['_tanggal'].dropna().unique()
+    map_lbl_p = {ts: _apply_lbl(ts) for ts in unique_tgl_p}
+    map_lbl_p[pd.NaT] = "Unknown"
+    df_p_all['_label'] = df_p_all['_tanggal'].map(map_lbl_p)
+    
+    # Sync label to df_s and df_p
+    df_s['_label'] = df_s_all.loc[df_s.index, '_label']
+    df_p['_label'] = df_p_all.loc[df_p.index, '_label']
 
     # --- PRE-AGGREGATION OPTIMIZATION ---
     df_s['_jenis_lower'] = df_s['_jenis'].str.lower()
     df_s['_seg_lower'] = df_s['_segmentasi'].str.lower()
-    df_s.attrs['grouped_dict'] = df_s.groupby(['_wilayah', '_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
+    df_s._syncore_cache = {}
+    df_s._syncore_cache['grouped_dict'] = df_s.groupby(['_wilayah', '_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
     df_s_tot = df_s[df_s['_wilayah'].isin(WILAYAH_ORDER)]
-    df_s.attrs['grouped_dict_total'] = df_s_tot.groupby(['_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
+    df_s._syncore_cache['grouped_dict_total'] = df_s_tot.groupby(['_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
     
-    df_p.attrs['grouped_dict'] = {k: v for k, v in df_p.groupby(['_wilayah', '_label'])}
+    df_p._syncore_cache = {}
+    df_p._syncore_cache['grouped_dict'] = {k: v for k, v in df_p.groupby(['_wilayah', '_label'])}
     df_p_tot = df_p[df_p['_wilayah'].isin(WILAYAH_ORDER)]
-    df_p.attrs['grouped_dict_total'] = {k: v for k, v in df_p_tot.groupby(['_label'])}
+    df_p._syncore_cache['grouped_dict_total'] = {k: v for k, v in df_p_tot.groupby('_label')}
     # ------------------------------------
 
     # VECTORIZED: ganti iterrows() yang lambat dengan groupby().max()
