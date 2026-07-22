@@ -554,7 +554,7 @@ def _generate_html(data_dict, metadata):
     return html
 
 
-def export_pdf_visual(data_dict, output_path, metadata):
+def export_pdf_visual(data_dict, output_path, metadata, dashboard_type='kc'):
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -574,10 +574,18 @@ def export_pdf_visual(data_dict, output_path, metadata):
     
     periode = metadata.get("periode", "-")
     
+    # Dynamically set title based on dashboard type
+    if dashboard_type == 'kcp':
+        dashboard_title = "KCP"
+    elif dashboard_type == 'unit':
+        dashboard_title = "Unit"
+    else:
+        dashboard_title = "KC"
+        
     elements.append(Spacer(1, 120))
     elements.append(Paragraph("<b>Performance Review:</b>", cover_title_style))
     elements.append(Paragraph("<b><i>Reinforce</i></b> <i>the</i> <b><i>Network</i></b><i>, Win</i> <b><i>Sustainable</i></b> <i>Growth</i>", cover_subtitle_style))
-    elements.append(Paragraph("<b>Area Head Gunung Sahari</b><br/><b>Region 6 - Jakarta 1</b>", cover_bottom_style))
+    elements.append(Paragraph(f"<b>Area Head Gunung Sahari - {dashboard_title}</b><br/><b>Region 6 - Jakarta 1</b>", cover_bottom_style))
     
     elements.append(Spacer(1, 100))
     elements.append(Paragraph(f"<b>Periode: {periode}</b>", cover_footer_style))
@@ -748,7 +756,7 @@ def export_pdf_visual(data_dict, output_path, metadata):
             elif ll == "npl %": npl = _sv(vl)
             
     # KPI Table
-    elements.append(Paragraph(f"RINGKASAN GUNUNG SAHARI - {periode}", header_style))
+    elements.append(Paragraph(f"RINGKASAN AREA GUNUNG SAHARI - {periode}", header_style))
     kpi_headers = []
     kpi_values = []
     if dk is not None: kpi_headers.append("Total DPK (Juta)"); kpi_values.append(f"{dk:,.0f}")
@@ -776,7 +784,19 @@ def export_pdf_visual(data_dict, output_path, metadata):
     elements.append(Spacer(1, 20))
     
     # Data Table
-    kcs = ["Tanah Abang", "Krekot", "Veteran", "Roxi", "Gunung Sahari", "Mangga Dua", "Kemayoran", "Total AH Gunsar"]
+    if dashboard_type == 'kc':
+        kcs = ["Tanah Abang", "Krekot", "Veteran", "Roxi", "Gunung Sahari", "Mangga Dua", "Kemayoran", "Total AH Gunsar"]
+    else:
+        # Build dynamic list from data_dict keys, excluding metadata and "Total AH Gunsar" (we'll append it later)
+        kcs = []
+        for k in data_dict.keys():
+            if not k.startswith("__") and k != "Total AH Gunsar" and isinstance(data_dict[k], dict) and "rows" in data_dict[k]:
+                kcs.append(k)
+        # Sort alphabetically
+        kcs.sort()
+        # Append total
+        kcs.append("Total AH Gunsar")
+
     tbl_headers = ["Kantor Cabang"]
     if dk is not None: tbl_headers.append("DPK Total")
     if pk is not None: tbl_headers.append("Pinjaman Total")
@@ -833,7 +853,7 @@ def export_pdf_visual(data_dict, output_path, metadata):
         cols_count = n_p + 5
         
         # DOUBLE HEADER
-        row0 = ["Mata Anggaran"] + ["Posisi"] + [""]*(n_p-1) + ["RKA", "Pencp RKA %", "MTD", "YTD", "YOY"]
+        row0 = ["Mata Anggaran"] + ["Posisi"] + [""]*(n_p-1) + ["RKA", f"Pencp RKA\n{target_month_full} 20{target_year} %", "MTD", "YTD", "YOY"]
         row1 = [""] + periode_list + [f"{target_month_full}-{target_year}", "", "", "", ""]
         
         det_data = [row0, row1]
@@ -849,25 +869,43 @@ def export_pdf_visual(data_dict, output_path, metadata):
                     for key, v in vals.items():
                         rka_dict[m][key] = rka_dict[m].get(key, 0) + v
             
+        ts_cmds = [
+            ('BACKGROUND', (0,0), (-1,1), colors.HexColor('#1E3A5F')),
+            ('TEXTCOLOR', (0,0), (-1,1), colors.whitesmoke),
+            ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+            ('ALIGN', (0,0), (0,-1), 'LEFT'),
+            ('ALIGN', (0,0), (-1,1), 'CENTER'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,1), 7.5),
+            ('FONTSIZE', (0,2), (-1,-1), 6.5),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+            ('SPAN', (0,0), (0,1)),
+            ('SPAN', (1,0), (n_p,0)),
+            ('SPAN', (n_p+2,0), (n_p+2,1)),
+            ('SPAN', (n_p+3,0), (n_p+3,1)),
+            ('SPAN', (n_p+4,0), (n_p+4,1)),
+            ('SPAN', (n_p+5,0), (n_p+5,1)),
+        ]
+        
         current_section = ""
+        row_idx = 2
         for row in kc_r:
             lbl = row.get("label", "")
             row_type = row.get("row_type", "data")
             
-            # Persis seperti exporter.py:
             if row_type in ("header", "header_value") or (row_type == "bold" and lbl in ("SML", "NPL")):
                 current_section = lbl
                 
             if lbl == "SEP" or row_type == "separator": continue
-            
-            # Kita hanya ingin memproses baris yang memiliki nilai aktual di PDF (tidak header-only text)
-            # Karena di PDF awalnya tidak print level -1.
-            # Tapi tunggu, row_type header_value ada nilainya! Jadi kita print semuanya kecuali separator.
-            # Hanya saja, di desain PDF yang lama, "level 0" adalah yang diprint. 
-            # Mari print semua selain separator dan metadata.
             if row_type in ("separator", "__metadata__"): continue
             
             if current_section == "": current_section = lbl
+            
+            lbl_lower = lbl.lower()
+            if lbl_lower in ["dana pihak ketiga", "dpk korporasi", "pinjaman", "sml", "sml %", "npl", "npl %", "recovery ec"]:
+                ts_cmds.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#E2E8F0')))
+                ts_cmds.append(('FONTNAME', (0, row_idx), (-1, row_idx), 'Helvetica-Bold'))
             
             r_data = [lbl]
             # Period values
@@ -901,30 +939,13 @@ def export_pdf_visual(data_dict, output_path, metadata):
                 else: r_data.append(f"{m*100:.2f}%" if "%" in lbl else f"{m:,.0f}")
                     
             det_data.append(r_data)
+            row_idx += 1
             
         w_main = 160
         w_other = 58
         
-        ts_detail = TableStyle([
-            ('BACKGROUND', (0,0), (-1,1), colors.HexColor('#1E3A5F')),
-            ('TEXTCOLOR', (0,0), (-1,1), colors.whitesmoke),
-            ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
-            ('ALIGN', (0,0), (0,-1), 'LEFT'),
-            ('ALIGN', (0,0), (-1,1), 'CENTER'),
-            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,1), 7.5),
-            ('FONTSIZE', (0,2), (-1,-1), 6.5),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
-            ('SPAN', (0,0), (0,1)),
-            ('SPAN', (1,0), (n_p,0)),
-            ('SPAN', (n_p+2,0), (n_p+2,1)),
-            ('SPAN', (n_p+3,0), (n_p+3,1)),
-            ('SPAN', (n_p+4,0), (n_p+4,1)),
-            ('SPAN', (n_p+5,0), (n_p+5,1)),
-        ])
         det_table = Table(det_data, colWidths=[w_main] + [w_other]*(cols_count-1), repeatRows=2)
-        det_table.setStyle(ts_detail)
+        det_table.setStyle(TableStyle(ts_cmds))
         elements.append(det_table)
         
     def draw_cover_bg(canvas, doc):

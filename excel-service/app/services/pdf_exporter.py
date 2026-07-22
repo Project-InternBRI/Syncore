@@ -89,7 +89,7 @@ def export_dashboard_pdf(data_dict: dict, dashboard_type: str, period_name: str,
     
     try:
         try:
-            export_pdf_visual(data_dict, temp_path, metadata)
+            export_pdf_visual(data_dict, temp_path, metadata, dashboard_type)
         except Exception as e:
             # Fallback basic PDF
             from reportlab.lib.pagesizes import A4
