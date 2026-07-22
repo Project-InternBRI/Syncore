@@ -591,11 +591,11 @@ def classify_pinjaman_exact(row) -> str | None:
     if produk in mikro_prods and segmen == 'micro':
         return 'Mikro'
         
-    if produk == 'kecilkomersial' and segmen == 'small':
+    if produk == 'kecilkomersial' and segmen in ['small', 'sme']:
         return 'Small'
         
     konsumer_prods = ['brigunaritel', 'kpr']
-    if produk in konsumer_prods and segmen == 'consumer':
+    if produk in konsumer_prods and segmen in ['consumer', 'konsumer']:
         return 'Konsumer'
         
     return None
@@ -694,7 +694,7 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     m_kol2   = df['Kolektabilitas One Obligor'] == 2
     m_kol345 = df['Kolektabilitas One Obligor'].isin([3, 4, 5])
     
-    # Hitung nilai Pinjaman
+    # Hitung nilai Pinjaman (hanya sub-segmen: Mikro + Small + Konsumer)
     small    = s(m_small)
     kpr      = s(m_kpr)
     briguna  = s(m_briguna)
@@ -702,7 +702,7 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     mikro    = s(m_micro)
     total_p  = small + konsumer + mikro
     
-    # Hitung nilai SML
+    # Hitung nilai SML (kolektabilitas 2, per sub-segmen)
     sml_small    = s(m_small    & m_kol2)
     sml_kpr      = s(m_kpr      & m_kol2)
     sml_briguna  = s(m_briguna  & m_kol2)
@@ -710,7 +710,7 @@ def hitung_pinjaman_kc(df_pinj, kc_keyword, tanggal):
     sml_mikro    = s(m_micro    & m_kol2)
     sml_total    = sml_small + sml_konsumer + sml_mikro
     
-    # Hitung nilai NPL
+    # Hitung nilai NPL (kolektabilitas 3,4,5, per sub-segmen)
     npl_small    = s(m_small    & m_kol345)
     npl_kpr      = s(m_kpr      & m_kol345)
     npl_briguna  = s(m_briguna  & m_kol345)
@@ -779,6 +779,17 @@ def log_pinjaman_debug(df_pinj, kc_keyword, tanggal, hasil):
     npl_pct = hasil.get('npl_pct', 0) or 0
     print(f'  SML: {sml:,.1f} ({sml_pct:.2%})')
     print(f'  NPL: {npl:,.1f} ({npl_pct:.2%})')
+    npl_s = hasil.get('npl_small', 0) or 0
+    print(f'  NPL Small: {npl_s:,.1f}')
+    # Detail baris Small NPL
+    m_small_kc = df_kc['segmen_dashboard'] == 'Small'
+    m_kol345_kc = df_kc['Kolektabilitas One Obligor'].isin([3, 4, 5])
+            
+    npl_small_rows = df_kc[m_small_kc & m_kol345_kc]
+    if not npl_small_rows.empty:
+        print(f'  NPL Small baris: {len(npl_small_rows)}')
+        for _, r in npl_small_rows.head(5).iterrows():
+            print(f'    Produk={r.get("Produk","?")} | SEGMEN={r.get("SEGMEN_2025","?")} | Kol={r.get("Kolektabilitas One Obligor","?")} | Baki={r.get("Baki Debet",0):,.0f}')
 
 
 def _build_rows(wilayah: str, df_s: pd.DataFrame, df_p: pd.DataFrame,
@@ -1199,7 +1210,7 @@ def process_files(
 
     kc_col_p   = _find_col(df_p_all, COL_P_KC, "Cabang", "KC")
     
-    segmen_col = _find_col(df_p_all, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN")
+    segmen_col = _find_col(df_p_all, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN", "Segmentasi BPR")
     kolekt_col = _find_col(df_p_all, COL_P_KOLEKT, "Kolektabilitas", "Kol")
     baki_col   = _find_col(df_p_all, COL_P_BAKI, "Outstanding", "Baki")
     periode_p  = _find_col(df_p_all, COL_P_PERIODE, "Periode", "Tanggal")
@@ -1267,7 +1278,7 @@ def process_files(
     if produk_col is None:
         raise RuntimeError("Kolom 'Produk' tidak ditemukan di SSA Pinjaman.")
         
-    segmen_col_p = _find_col(df_p, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN")
+    segmen_col_p = _find_col(df_p, "SEGMEN_2025", "Segmen_2025", "segmen_2025", "Segmen", "SEGMEN", "Segmentasi BPR")
     if segmen_col_p is None:
         raise RuntimeError("Kolom 'SEGMEN_2025' tidak ditemukan di SSA Pinjaman.")
 
@@ -1280,6 +1291,15 @@ def process_files(
         kc_col_p: 'Nama Cabang',
         periode_p: 'Month, Day, Year of Periode'
     }, inplace=True)
+    
+    # ── FALLBACK: File historis mungkin tidak punya SEGMEN_2025 tapi punya Segmen ──
+    # Saat pd.concat, baris historis akan NaN di kolom SEGMEN_2025.
+    # Isi NaN tersebut dari kolom 'Segmen' (jika ada).
+    if 'Segmen' in df_p.columns and 'SEGMEN_2025' in df_p.columns:
+        mask_nan = df_p['SEGMEN_2025'].isna() | (df_p['SEGMEN_2025'].astype(str).str.strip() == '')
+        df_p.loc[mask_nan, 'SEGMEN_2025'] = df_p.loc[mask_nan, 'Segmen']
+        n_filled = mask_nan.sum()
+        print(f"[SEGMEN FALLBACK] {n_filled} baris SEGMEN_2025 diisi dari kolom 'Segmen'")
     
     # Process Pinjaman completely using user's prepare_pinjaman
     df_p = prepare_pinjaman(df_p)
@@ -1306,6 +1326,27 @@ def process_files(
         df_p['_tanggal'] = df_p[periode_p].apply(parse_tanggal_id)
     else:
         df_p['_tanggal'] = None
+
+    # Debug: tampilkan tanggal-tanggal unik yang terbaca
+    if '_tanggal' in df_s.columns:
+        s_parsed = df_s['_tanggal'].dropna()
+        s_unparsed = df_s[df_s['_tanggal'].isna()]
+        print(f"\n[DATE DEBUG] Simpanan: {len(s_parsed)} parsed, {len(s_unparsed)} unparsed")
+        if not s_parsed.empty:
+            print(f"[DATE DEBUG] Simpanan tanggal unik: {sorted(s_parsed.unique())}")
+        if not s_unparsed.empty and periode_s in df_s.columns:
+            raw_unparsed = s_unparsed[periode_s].unique()[:10]
+            print(f"[DATE DEBUG] Simpanan raw unparsed values (top 10): {list(raw_unparsed)}")
+    
+    if '_tanggal' in df_p.columns:
+        p_parsed = df_p['_tanggal'].dropna()
+        p_unparsed = df_p[df_p['_tanggal'].isna()]
+        print(f"[DATE DEBUG] Pinjaman: {len(p_parsed)} parsed, {len(p_unparsed)} unparsed")
+        if not p_parsed.empty:
+            print(f"[DATE DEBUG] Pinjaman tanggal unik: {sorted(p_parsed.unique())}")
+        if not p_unparsed.empty and periode_p in df_p.columns:
+            raw_unparsed = p_unparsed[periode_p].unique()[:10]
+            print(f"[DATE DEBUG] Pinjaman raw unparsed values (top 10): {list(raw_unparsed)}")
 
     # Kumpulkan semua tanggal unik berdasarkan label
     tgl_set: dict[str, pd.Timestamp] = {}

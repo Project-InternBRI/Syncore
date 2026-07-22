@@ -7,6 +7,7 @@ use App\Models\Pipeline;
 use App\Models\Rka;
 use App\Models\PipelineActionPlan;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ActivityLogger;
 
 class PipelineController extends Controller
 {
@@ -83,6 +84,8 @@ class PipelineController extends Controller
             'tahun', 'bulan', 'branch_name', 'kategori', 'nasabah', 'nominal', 'tanggal', 'week'
         ]));
 
+        ActivityLogger::log('Perencanaan (Pipeline)', 'UPDATE_PIPELINE', "Menambahkan strategi pipeline {$request->kategori} untuk {$request->branch_name}");
+
         return response()->json([
             'success' => true,
             'data' => $actionPlan,
@@ -144,6 +147,8 @@ class PipelineController extends Controller
                 'created_by' => auth()->id() ?? 'system'
             ]
         );
+
+        ActivityLogger::log('Perencanaan (Pipeline)', 'UPDATE_PIPELINE', "Menyimpan pipeline mingguan {$request->kategori} untuk {$request->branch_name}");
 
         return response()->json([
             'success' => true,

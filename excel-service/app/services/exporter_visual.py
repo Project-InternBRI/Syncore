@@ -412,9 +412,18 @@ def _generate_html(data_dict, metadata):
     <body>
     """
     
+    import os
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    danantara_path = f"file://{os.path.join(base_dir, '..', 'assets', 'danantara-logo.png')}"
+    bri_path = f"file://{os.path.join(base_dir, '..', 'assets', 'Logo_BRI.png')}"
+
     # 1. Cover
     html += f"""
     <div class="cover">
+        <div style="position: absolute; top: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between;">
+            <img src="{danantara_path}" style="height: 80px; object-fit: contain;">
+            <img src="{bri_path}" style="height: 80px; object-fit: contain;">
+        </div>
         <h1 class="title">DASHBOARD SSA</h1>
         <div class="subtitle">AH Gunsar Jakarta Region</div>
         <div>Periode Data: {periode}</div>
@@ -441,12 +450,12 @@ def _generate_html(data_dict, metadata):
     # 2. Ringkasan
     html += f"""
     <div class="page">
-        <div class="header">RINGKASAN EKSEKUTIF - AH GUNSAR</div>
+        <div class="header">RINGKASAN GUNUNG SAHARI - AH GUNSAR</div>
         <div class="kpi-container">
             <div class="kpi-box"><div class="kpi-val">{dk:,.0f}</div><div class="kpi-lbl">Total DPK (Juta)</div></div>
             <div class="kpi-box"><div class="kpi-val">{pk:,.0f}</div><div class="kpi-lbl">Total Pinjaman (Juta)</div></div>
-            <div class="kpi-box"><div class="kpi-val">{sml:.2f}%</div><div class="kpi-lbl">SML Ratio</div></div>
-            <div class="kpi-box"><div class="kpi-val">{npl:.2f}%</div><div class="kpi-lbl">NPL Ratio</div></div>
+            <div class="kpi-box"><div class="kpi-val">{sml*100:.2f}%</div><div class="kpi-lbl">SML Ratio</div></div>
+            <div class="kpi-box"><div class="kpi-val">{npl*100:.2f}%</div><div class="kpi-lbl">NPL Ratio</div></div>
         </div>
         <table>
             <tr>
@@ -480,8 +489,8 @@ def _generate_html(data_dict, metadata):
             <td class="left">{kc_nm}</td>
             <td>{k_dk:,.0f}</td>
             <td>{k_pk:,.0f}</td>
-            <td>{k_sml:.2f}%</td>
-            <td>{k_npl:.2f}%</td>
+            <td>{k_sml*100:.2f}%</td>
+            <td>{k_npl*100:.2f}%</td>
             <td class="{status_cls}">{status_txt}</td>
         </tr>
         """
@@ -525,12 +534,12 @@ def _generate_html(data_dict, metadata):
             html += f'<tr class="{cls}" style="{bld}"><td class="left">{ind}{lbl}</td>'
             for p in periode_list:
                 v = r.get("values", {}).get(p, 0)
-                if "%" in lbl: html += f"<td>{v:.2f}%</td>"
+                if "%" in lbl: html += f"<td>{v*100:.2f}%</td>"
                 else: html += f"<td>{v:,.0f}</td>"
                 
             g = r.get("growth_mtd", 0)
             c = "color: #16A34A;" if g > 0 else "color: #DC2626;" if g < 0 else ""
-            html += f'<td style="{c}">{g:.2f}%</td></tr>'
+            html += f'<td style="{c}">{g*100:.2f}%</td></tr>'
             
         html += "</table></div>"
         
@@ -546,54 +555,190 @@ def _generate_html(data_dict, metadata):
 
 
 def export_pdf_visual(data_dict, output_path, metadata):
-    # Using ReportLab to avoid Weasyprint GTK/Pango C-library issues on macOS
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib import colors
 
     doc = SimpleDocTemplate(output_path, pagesize=landscape(A4),
-                            rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+                            rightMargin=20, leftMargin=20, topMargin=70, bottomMargin=30)
     elements = []
     styles = getSampleStyleSheet()
     
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=24,
-        textColor=colors.HexColor('#1E3A5F'),
-        alignment=1,
-        spaceAfter=10
-    )
-    subtitle_style = ParagraphStyle(
-        'CustomSubtitle',
-        parent=styles['Normal'],
-        fontSize=14,
-        textColor=colors.HexColor('#64748B'),
-        alignment=1,
-        spaceAfter=30
-    )
-    header_style = ParagraphStyle(
-        'CustomHeader',
-        parent=styles['Heading2'],
-        fontSize=16,
-        textColor=colors.HexColor('#1E3A5F'),
-        spaceAfter=15
-    )
+    # --- Cover Page Styles ---
+    cover_title_style = ParagraphStyle('CoverTitle', parent=styles['Heading1'], fontSize=48, textColor=colors.white, alignment=0, spaceBefore=0, spaceAfter=30, leftIndent=40)
+    cover_subtitle_style = ParagraphStyle('CoverSubtitle', parent=styles['Normal'], fontSize=28, textColor=colors.white, alignment=0, spaceAfter=15, leftIndent=40)
+    cover_bottom_style = ParagraphStyle('CoverBottom', parent=styles['Normal'], fontSize=18, textColor=colors.white, alignment=0, spaceBefore=60, leftIndent=40, leading=22)
+    cover_footer_style = ParagraphStyle('CoverFooter', parent=styles['Normal'], fontSize=14, textColor=colors.white, alignment=1)
+    header_style = ParagraphStyle('CustomHeader', parent=styles['Heading2'], fontSize=16, textColor=colors.HexColor('#1E3A5F'), spaceAfter=15)
     
     periode = metadata.get("periode", "-")
-    tanggal = f"{metadata.get('tanggal', '')} {metadata.get('hari', '')}, {metadata.get('jam', '')} WIB"
     
-    elements.append(Paragraph("DASHBOARD SSA — BANK BRI", title_style))
-    elements.append(Paragraph("AH Gunsar Jakarta Region", subtitle_style))
-    elements.append(Paragraph(f"Periode Data: {periode} | Diekspor: {tanggal}", subtitle_style))
-    elements.append(Spacer(1, 40))
+    elements.append(Spacer(1, 120))
+    elements.append(Paragraph("<b>Performance Review:</b>", cover_title_style))
+    elements.append(Paragraph("<b><i>Reinforce</i></b> <i>the</i> <b><i>Network</i></b><i>, Win</i> <b><i>Sustainable</i></b> <i>Growth</i>", cover_subtitle_style))
+    elements.append(Paragraph("<b>Area Head Gunung Sahari</b><br/><b>Region 6 - Jakarta 1</b>", cover_bottom_style))
     
-    # Get total data
+    from datetime import datetime
+    now_str = datetime.now().strftime('%d %B %Y %H:%M:%S')
+    elements.append(Spacer(1, 100))
+    elements.append(Paragraph(f"<b>Periode: {periode}</b><br/><b>Generated at: {now_str}</b>", cover_footer_style))
+    
+    elements.append(PageBreak())
+    
     total_data = data_dict.get("Total AH Gunsar", {})
     periode_list = total_data.get("periode_list", [])
     
-    dk, pk, sml, npl = 0, 0, 0, 0
+    target_month_num = "01"
+    target_month_full = "Januari"
+    target_year = "26"
+    target_month_idx = 0
+    
+    if periode_list:
+        lp = periode_list[-1]
+        try:
+            m_str = lp.split('-')[0].strip().lower()
+            if ' ' in m_str: m_str = m_str.split(' ')[1]
+            MONTH_MAP = {'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'mei':'05', 'jun':'06', 'jul':'07', 'agu':'08', 'sep':'09', 'okt':'10', 'nov':'11', 'des':'12'}
+            FULL_MONTH_MAP = {'01':'Januari', '02':'Februari', '03':'Maret', '04':'April', '05':'Mei', '06':'Juni', '07':'Juli', '08':'Agustus', '09':'September', '10':'Oktober', '11':'November', '12':'Desember'}
+            target_month_num = MONTH_MAP.get(m_str[:3], '01')
+            target_month_full = FULL_MONTH_MAP.get(target_month_num, "Januari")
+            target_month_idx = int(target_month_num) - 1
+            if '-' in lp:
+                y_str = lp.split('-')[-1]
+                target_year = y_str[-2:] if len(y_str) >= 2 else y_str
+        except: pass
+
+    # --- EXACT RKA EXTRACTION LOGIC FROM EXCEL ---
+    rka_payload = data_dict.get("__rka__", [])
+    rka_records_by_month_and_kc = {}
+    DB_TO_INTERNAL_RKA_MAP = {
+        'Dana Pihak Ketiga - Tabungan': 'dpk_tabungan', 'Dana Pihak Ketiga - Giro': 'dpk_giro', 'Dana Pihak Ketiga - Deposito': 'dpk_deposito',
+        'DPK Korporasi - Giro': 'korp_giro', 'DPK Korporasi - Deposito': 'korp_deposito',
+        'Pinjaman - Mikro': 'pinj_mikro', 'Pinjaman - Small': 'pinj_small', 'Pinjaman - Konsumer': 'pinj_konsumer',
+        'Pinjaman - Konsumer KPR': 'pinj_kons_kpr', 'Pinjaman - Konsumer Briguna Ritel': 'pinj_kons_briguna',
+        'SML - Mikro': 'sml_mikro', 'SML - Small': 'sml_small', 'SML - Konsumer': 'sml_konsumer',
+        'SML - Konsumer KPR': 'sml_kons_kpr', 'SML - Konsumer Briguna Ritel': 'sml_kons_briguna',
+        'NPL - Mikro': 'npl_mikro', 'NPL - Small': 'npl_small', 'NPL - Konsumer': 'npl_konsumer',
+        'NPL - Konsumer KPR': 'npl_kons_kpr', 'NPL - Konsumer Briguna Ritel': 'npl_kons_briguna',
+        'Recovery EC - Mikro': 'rec_mikro', 'Recovery EC - Small': 'rec_small', 'Recovery EC - Konsumer': 'rec_konsumer',
+    }
+    MONTH_NAME_TO_NUM = {'januari': '01', 'februari': '02', 'maret': '03', 'april': '04', 'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08', 'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'}
+    
+    for rka in rka_payload:
+        kc_full = rka.get('branch_name', '')
+        kc_short = kc_full.replace('KC Jakarta ', '').replace('KC ', '').strip()
+        if kc_short not in rka_records_by_month_and_kc:
+            rka_records_by_month_and_kc[kc_short] = {}
+        
+        bulan_str = str(rka.get('bulan', '')).lower().strip()
+        if bulan_str in ['1','2','3','4','5','6','7','8','9']: bulan_str = '0' + bulan_str
+        if bulan_str in ['01','02','03','04','05','06','07','08','09','10','11','12']: bulan_num = bulan_str
+        else: bulan_num = MONTH_NAME_TO_NUM.get(bulan_str, '')
+        
+        if not bulan_num: continue
+        if bulan_num not in rka_records_by_month_and_kc[kc_short]:
+            rka_records_by_month_and_kc[kc_short][bulan_num] = {}
+            
+        kategori_db = rka.get('kategori', '')
+        internal_key = DB_TO_INTERNAL_RKA_MAP.get(kategori_db)
+        if not internal_key: continue
+            
+        nominal = rka.get('target_nominal')
+        try: nominal = float(nominal) if nominal else 0
+        except ValueError: nominal = 0
+            
+        rka_records_by_month_and_kc[kc_short][bulan_num][internal_key] = nominal
+
+    # --- HELPER FUNCS ---
+    def get_rka_vals(rka_records_by_month, section, label):
+        vals = [""] * 12
+        if not rka_records_by_month: return vals
+        mapping = {
+            ("Dana Pihak Ketiga", "Dana Pihak Ketiga"): ["dpk_tabungan", "dpk_giro", "dpk_deposito"],
+            ("Dana Pihak Ketiga", "Tabungan"): ["dpk_tabungan"],
+            ("Dana Pihak Ketiga", "Giro"): ["dpk_giro"],
+            ("Dana Pihak Ketiga", "Deposito"): ["dpk_deposito"],
+            ("Dana Pihak Ketiga", "CASA"): ["dpk_tabungan", "dpk_giro"],
+            ("DPK Korporasi", "DPK Korporasi"): ["korp_giro", "korp_deposito"],
+            ("DPK Korporasi", "Giro"): ["korp_giro"],
+            ("DPK Korporasi", "Deposito"): ["korp_deposito"],
+            ("Pinjaman", "Pinjaman"): ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"],
+            ("Pinjaman", "Mikro"): ["pinj_mikro"],
+            ("Pinjaman", "Small"): ["pinj_small"],
+            ("Pinjaman", "Konsumer"): ["pinj_konsumer"],
+            ("Pinjaman", "Konsumer - KPR"): ["pinj_kons_kpr"],
+            ("Pinjaman", "Konsumer - Briguna Ritel"): ["pinj_kons_briguna"],
+            ("SML", "SML"): ["sml_mikro", "sml_small", "sml_kons_kpr", "sml_kons_briguna"],
+            ("SML", "SML %"): ["sml_pct"],
+            ("SML", "Mikro"): ["sml_mikro"],
+            ("SML", "Mikro %"): ["sml_mikro_pct"],
+            ("SML", "Small"): ["sml_small"],
+            ("SML", "Small %"): ["sml_small_pct"],
+            ("SML", "Konsumer"): ["sml_konsumer"],
+            ("SML", "Konsumer %"): ["sml_konsumer_pct"],
+            ("SML", "Konsumer - KPR"): ["sml_kons_kpr"],
+            ("SML", "Konsumer - KPR %"): ["sml_kons_kpr_pct"],
+            ("SML", "Konsumer - Briguna Ritel"): ["sml_kons_briguna"],
+            ("SML", "Konsumer - Briguna Ritel %"): ["sml_kons_briguna_pct"],
+            ("NPL", "NPL"): ["npl_mikro", "npl_small", "npl_kons_kpr", "npl_kons_briguna"],
+            ("NPL", "NPL %"): ["npl_pct"],
+            ("NPL", "Mikro"): ["npl_mikro"],
+            ("NPL", "Mikro %"): ["npl_mikro_pct"],
+            ("NPL", "Small"): ["npl_small"],
+            ("NPL", "Small %"): ["npl_small_pct"],
+            ("NPL", "Konsumer"): ["npl_konsumer"],
+            ("NPL", "Konsumer %"): ["npl_konsumer_pct"],
+            ("NPL", "Konsumer - KPR"): ["npl_kons_kpr"],
+            ("NPL", "Konsumer - KPR %"): ["npl_kons_kpr_pct"],
+            ("NPL", "Konsumer - Briguna Ritel"): ["npl_kons_briguna"],
+            ("NPL", "Konsumer - Briguna Ritel %"): ["npl_kons_briguna_pct"],
+            ("Recovery. EC", "Recovery. EC"): ["rec_mikro", "rec_small", "rec_konsumer"],
+            ("Recovery. EC", "Mikro"): ["rec_mikro"],
+            ("Recovery. EC", "Small"): ["rec_small"],
+            ("Recovery. EC", "Konsumer"): ["rec_konsumer"],
+        }
+        cols = mapping.get((section, label), [])
+        if not cols: return vals
+        MONTHS_MAP = {'01':'01', '02':'02', '03':'03', '04':'04', '05':'05', '06':'06', '07':'07', '08':'08', '09':'09', '10':'10', '11':'11', '12':'12'}
+        for i, v in enumerate(MONTHS_MAP.values()):
+            rec = rka_records_by_month.get(v, {})
+            if not rec: continue
+            if 'pct' in cols[0]:
+                if cols[0] == 'sml_pct':
+                    num = sum(rec.get(c, 0) or 0 for c in ["sml_mikro", "sml_small", "sml_kons_kpr", "sml_kons_briguna"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
+                elif cols[0] == 'sml_mikro_pct':
+                    num, den = (rec.get("sml_mikro", 0) or 0), (rec.get("pinj_mikro", 0) or 0)
+                elif cols[0] == 'sml_small_pct':
+                    num, den = (rec.get("sml_small", 0) or 0), (rec.get("pinj_small", 0) or 0)
+                elif cols[0] == 'sml_konsumer_pct':
+                    num, den = (rec.get("sml_konsumer", 0) or 0), (rec.get("pinj_konsumer", 0) or 0)
+                elif cols[0] == 'sml_konsumer_kpr_pct':
+                    num, den = (rec.get("sml_kons_kpr", 0) or 0), (rec.get("pinj_kons_kpr", 0) or 0)
+                elif cols[0] == 'sml_konsumer_briguna_pct':
+                    num, den = (rec.get("sml_kons_briguna", 0) or 0), (rec.get("pinj_kons_briguna", 0) or 0)
+                elif cols[0] == 'npl_pct':
+                    num = sum(rec.get(c, 0) or 0 for c in ["npl_mikro", "npl_small", "npl_kons_kpr", "npl_kons_briguna"])
+                    den = sum(rec.get(c, 0) or 0 for c in ["pinj_mikro", "pinj_small", "pinj_kons_kpr", "pinj_kons_briguna"])
+                elif cols[0] == 'npl_mikro_pct':
+                    num, den = (rec.get("npl_mikro", 0) or 0), (rec.get("pinj_mikro", 0) or 0)
+                elif cols[0] == 'npl_small_pct':
+                    num, den = (rec.get("npl_small", 0) or 0), (rec.get("pinj_small", 0) or 0)
+                elif cols[0] == 'npl_konsumer_pct':
+                    num, den = (rec.get("npl_konsumer", 0) or 0), (rec.get("pinj_konsumer", 0) or 0)
+                elif cols[0] == 'npl_konsumer_kpr_pct':
+                    num, den = (rec.get("npl_kons_kpr", 0) or 0), (rec.get("pinj_kons_kpr", 0) or 0)
+                elif cols[0] == 'npl_konsumer_briguna_pct':
+                    num, den = (rec.get("npl_kons_briguna", 0) or 0), (rec.get("pinj_kons_briguna", 0) or 0)
+                else:
+                    num, den = 0, 1
+                vals[i] = (num / den * 100) if den else 0.0
+            else:
+                vals[i] = sum(rec.get(c, 0) or 0 for c in cols)
+        return vals
+
+    dk, pk, sml, npl = None, None, None, None
     if periode_list:
         lp = periode_list[-1]
         for r in total_data.get("rows", []):
@@ -605,37 +750,45 @@ def export_pdf_visual(data_dict, output_path, metadata):
             elif ll == "npl %": npl = _sv(vl)
             
     # KPI Table
-    elements.append(Paragraph("RINGKASAN EKSEKUTIF", header_style))
-    kpi_data = [
-        ["Total DPK (Juta)", "Total Pinjaman (Juta)", "SML Ratio (%)", "NPL Ratio (%)"],
-        [f"{dk:,.0f}", f"{pk:,.0f}", f"{sml:.2f}%", f"{npl:.2f}%"]
-    ]
-    kpi_table = Table(kpi_data, colWidths=[150]*4)
-    kpi_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1E3A5F')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,0), 10),
-        ('BOTTOMPADDING', (0,0), (-1,0), 8),
-        ('BACKGROUND', (0,1), (-1,1), colors.HexColor('#F8FAFC')),
-        ('TEXTCOLOR', (0,1), (-1,1), colors.HexColor('#1E293B')),
-        ('FONTNAME', (0,1), (-1,1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,1), (-1,1), 14),
-        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#CBD5E1'))
-    ]))
-    elements.append(kpi_table)
+    elements.append(Paragraph(f"RINGKASAN GUNUNG SAHARI - {periode}", header_style))
+    kpi_headers = []
+    kpi_values = []
+    if dk is not None: kpi_headers.append("Total DPK (Juta)"); kpi_values.append(f"{dk:,.0f}")
+    if pk is not None: kpi_headers.append("Total Pinjaman (Juta)"); kpi_values.append(f"{pk:,.0f}")
+    if sml is not None: kpi_headers.append("SML Ratio (%)"); kpi_values.append(f"{sml*100:.2f}%")
+    if npl is not None: kpi_headers.append("NPL Ratio (%)"); kpi_values.append(f"{npl*100:.2f}%")
+        
+    if kpi_headers:
+        kpi_data = [kpi_headers, kpi_values]
+        kpi_table = Table(kpi_data, colWidths=[150]*len(kpi_headers))
+        kpi_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1E3A5F')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 10),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+            ('BACKGROUND', (0,1), (-1,1), colors.HexColor('#F1F5F9')),
+            ('TEXTCOLOR', (0,1), (-1,1), colors.HexColor('#1E293B')),
+            ('FONTNAME', (0,1), (-1,1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,1), (-1,1), 12),
+            ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#CBD5E1')),
+        ]))
+        elements.append(kpi_table)
     elements.append(Spacer(1, 20))
     
-    # Summary Table per KC
+    # Data Table
     kcs = ["Tanah Abang", "Krekot", "Veteran", "Roxi", "Gunung Sahari", "Mangga Dua", "Kemayoran", "Total AH Gunsar"]
-    sum_data = [["Kantor Cabang", "DPK Total", "Pinjaman Total", "SML %", "NPL %", "Status"]]
+    tbl_headers = ["Kantor Cabang"]
+    if dk is not None: tbl_headers.append("DPK Total")
+    if pk is not None: tbl_headers.append("Pinjaman Total")
+    if sml is not None: tbl_headers.append("SML %")
+    if npl is not None: tbl_headers.append("NPL %")
     
+    tbl_data = [tbl_headers]
     for kc_nm in kcs:
-        if kc_nm not in data_dict: continue
-        kc_r = data_dict[kc_nm].get("rows", [])
-        
-        k_dk, k_pk, k_sml, k_npl = 0, 0, 0, 0
+        kc_r = data_dict.get(kc_nm, {}).get("rows", [])
+        k_dk, k_pk, k_sml, k_npl = None, None, None, None
         if periode_list:
             lp = periode_list[-1]
             for x in kc_r:
@@ -646,106 +799,177 @@ def export_pdf_visual(data_dict, output_path, metadata):
                 elif ll == "sml %": k_sml = _sv(vl)
                 elif ll == "npl %": k_npl = _sv(vl)
                 
-        if k_npl < 5: status_txt = "BAIK"
-        elif k_npl <= 8: status_txt = "PERHATIAN"
-        else: status_txt = "KRITIS"
+        row_data = [kc_nm]
+        if dk is not None: row_data.append(f"{k_dk:,.0f}" if k_dk is not None else "-")
+        if pk is not None: row_data.append(f"{k_pk:,.0f}" if k_pk is not None else "-")
+        if sml is not None: row_data.append(f"{k_sml*100:.2f}%" if k_sml is not None else "-")
+        if npl is not None: row_data.append(f"{k_npl*100:.2f}%" if k_npl is not None else "-")
+        tbl_data.append(row_data)
         
-        sum_data.append([
-            kc_nm, f"{k_dk:,.0f}", f"{k_pk:,.0f}", f"{k_sml:.2f}%", f"{k_npl:.2f}%", status_txt
-        ])
-        
-    sum_table = Table(sum_data, colWidths=[150, 100, 100, 80, 80, 100])
-    ts = TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1E3A5F')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-        ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
-        ('ALIGN', (0,0), (0,-1), 'LEFT'),
-        ('ALIGN', (-1,0), (-1,-1), 'CENTER'),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#CBD5E1')),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#F8FAFC')])
-    ])
-    
-    for i, row in enumerate(sum_data[1:], 1):
-        if row[0] == "Total AH Gunsar":
-            ts.add('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold')
-        if row[5] == "BAIK": ts.add('TEXTCOLOR', (5,i), (5,i), colors.HexColor('#166534'))
-        elif row[5] == "PERHATIAN": ts.add('TEXTCOLOR', (5,i), (5,i), colors.HexColor('#854D0E'))
-        else: ts.add('TEXTCOLOR', (5,i), (5,i), colors.HexColor('#991B1B'))
-            
-    sum_table.setStyle(ts)
-    elements.append(sum_table)
-    
-    # Detail Pages per KC
-    for kc_nm in kcs:
-        if kc_nm not in data_dict: continue
-        elements.append(PageBreak())
-        elements.append(Paragraph(f"DETAIL DATA — {kc_nm.upper()}", header_style))
-        
-        headers = ["Mata Anggaran"] + periode_list + ["Growth MTD"]
-        det_data = [headers]
-        
-        rows = data_dict[kc_nm].get("rows", [])
-        
-        ts_detail = TableStyle([
+    if len(tbl_headers) > 1:
+        sum_table = Table(tbl_data, colWidths=[120] + [90]*(len(tbl_headers)-1))
+        sum_table.setStyle(TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1E3A5F')),
             ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
-            ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+            ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
             ('ALIGN', (0,0), (0,-1), 'LEFT'),
             ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,-1), 8),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#CBD5E1')),
-            ('LEFTPADDING', (0,0), (-1,-1), 4),
-            ('RIGHTPADDING', (0,0), (-1,-1), 4),
-        ])
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('FONTSIZE', (0,1), (-1,-1), 8),
+            ('BOTTOMPADDING', (0,0), (-1,0), 6),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+        ]))
+        elements.append(sum_table)
+    
+    # Detail slides per KC
+    for kc_nm in kcs:
+        kc_r = data_dict.get(kc_nm, {}).get("rows", [])
+        if not kc_r: continue
         
-        row_idx = 1
-        for r in rows:
-            lbl = r.get("label", "")
-            if lbl == "SEP":
-                det_data.append([""] * len(headers))
-                ts_detail.add('BACKGROUND', (0,row_idx), (-1,row_idx), colors.HexColor('#1E3A5F'))
-                row_idx += 1
-                continue
+        elements.append(PageBreak())
+        elements.append(Paragraph(f"DETAIL KINERJA — {kc_nm.upper()}", header_style))
+        
+        if not periode_list: continue
+            
+        n_p = len(periode_list)
+        cols_count = n_p + 5
+        
+        # DOUBLE HEADER
+        row0 = ["Mata Anggaran"] + ["Posisi"] + [""]*(n_p-1) + ["RKA", "Pencp RKA %", "MTD", "YTD", "YOY"]
+        row1 = [""] + periode_list + [f"{target_month_full}-{target_year}", "", "", "", ""]
+        
+        det_data = [row0, row1]
+        
+        rka_dict = rka_records_by_month_and_kc.get(kc_nm, {})
+        if not rka_dict and kc_nm == 'Krekot': rka_dict = rka_records_by_month_and_kc.get('Krekot Bunder', {})
+        elif not rka_dict and kc_nm == 'Gunung Sahari': rka_dict = rka_records_by_month_and_kc.get('Gunung Sahari Raya', {})
+        elif kc_nm == 'Total AH Gunsar':
+            rka_dict = {}
+            for _, months in rka_records_by_month_and_kc.items():
+                for m, vals in months.items():
+                    if m not in rka_dict: rka_dict[m] = {}
+                    for key, v in vals.items():
+                        rka_dict[m][key] = rka_dict[m].get(key, 0) + v
+            
+        current_section = ""
+        for row in kc_r:
+            lbl = row.get("label", "")
+            row_type = row.get("row_type", "data")
+            
+            # Persis seperti exporter.py:
+            if row_type in ("header", "header_value") or (row_type == "bold" and lbl in ("SML", "NPL")):
+                current_section = lbl
                 
-            lvl = r.get("level", 0)
-            is_bold = r.get("is_bold", False)
+            if lbl == "SEP" or row_type == "separator": continue
             
-            lbl_l = lbl.lower()
-            if "dana pihak" in lbl_l or "dpk" in lbl_l or "pinjaman" in lbl_l:
-                if is_bold: ts_detail.add('BACKGROUND', (0,row_idx), (-1,row_idx), colors.HexColor('#DBEAFE'))
-            elif "sml" in lbl_l: ts_detail.add('BACKGROUND', (0,row_idx), (-1,row_idx), colors.HexColor('#FEF3C7'))
-            elif "npl" in lbl_l: ts_detail.add('BACKGROUND', (0,row_idx), (-1,row_idx), colors.HexColor('#FEF2F2'))
-            elif lvl > 0 and row_idx % 2 == 0: ts_detail.add('BACKGROUND', (0,row_idx), (-1,row_idx), colors.HexColor('#F8FAFC'))
+            # Kita hanya ingin memproses baris yang memiliki nilai aktual di PDF (tidak header-only text)
+            # Karena di PDF awalnya tidak print level -1.
+            # Tapi tunggu, row_type header_value ada nilainya! Jadi kita print semuanya kecuali separator.
+            # Hanya saja, di desain PDF yang lama, "level 0" adalah yang diprint. 
+            # Mari print semua selain separator dan metadata.
+            if row_type in ("separator", "__metadata__"): continue
             
-            if is_bold: ts_detail.add('FONTNAME', (0,row_idx), (-1,row_idx), 'Helvetica-Bold')
+            if current_section == "": current_section = lbl
             
-            ind = "  " * lvl
-            row_data = [ind + lbl]
+            r_data = [lbl]
+            # Period values
             for p in periode_list:
-                v = _sv(r.get("values", {}).get(p, 0))
-                if "%" in lbl: row_data.append(f"{v:.2f}%")
-                else: row_data.append(f"{v:,.0f}")
+                v = _sv(row.get("values", {}).get(p, 0))
+                if "%" in lbl: r_data.append(f"{v*100:.2f}%")
+                else: r_data.append(f"{v:,.0f}")
                 
-            g = _sv(r.get("growth_mtd", 0))
-            if g > 0: ts_detail.add('TEXTCOLOR', (-1,row_idx), (-1,row_idx), colors.HexColor('#16A34A'))
-            elif g < 0: ts_detail.add('TEXTCOLOR', (-1,row_idx), (-1,row_idx), colors.HexColor('#DC2626'))
-            row_data.append(f"{g:.2f}%")
+            # RKA and Pencapaian
+            rka_array = get_rka_vals(rka_dict, current_section, lbl)
+            rka_val = rka_array[target_month_idx] if len(rka_array) > target_month_idx else ""
             
-            det_data.append(row_data)
-            row_idx += 1
+            if rka_val != "":
+                r_data.append(f"{rka_val*100:.2f}%" if "%" in lbl else f"{rka_val:,.0f}")
+                posisi_val = _sv(row.get("values", {}).get(periode_list[-1], 0))
+                if posisi_val and rka_val and rka_val != 0:
+                    if current_section in ("SML", "NPL") and posisi_val != 0:
+                        pencp = (rka_val / posisi_val) * 100
+                    else:
+                        pencp = (posisi_val / rka_val) * 100
+                    r_data.append(f"{pencp:.2f}%")
+                else:
+                    r_data.append("0.00%")
+            else:
+                r_data.append("-")
+                r_data.append("-")
             
-        # Distribute widths (Mata Anggaran gets more)
-        total_w = 750
-        cols_count = len(headers)
-        w_main = 250
-        w_other = (total_w - w_main) / max(1, cols_count - 1)
+            # MTD, YTD, YOY
+            for m in [row.get("mtd"), row.get("ytd"), row.get("yoy")]:
+                if m is None: r_data.append("-")
+                else: r_data.append(f"{m*100:.2f}%" if "%" in lbl else f"{m:,.0f}")
+                    
+            det_data.append(r_data)
+            
+        w_main = 160
+        w_other = 58
         
-        det_table = Table(det_data, colWidths=[w_main] + [w_other]*(cols_count-1))
+        ts_detail = TableStyle([
+            ('BACKGROUND', (0,0), (-1,1), colors.HexColor('#1E3A5F')),
+            ('TEXTCOLOR', (0,0), (-1,1), colors.whitesmoke),
+            ('ALIGN', (1,0), (-1,-1), 'RIGHT'),
+            ('ALIGN', (0,0), (0,-1), 'LEFT'),
+            ('ALIGN', (0,0), (-1,1), 'CENTER'),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('FONTNAME', (0,0), (-1,1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,1), 7.5),
+            ('FONTSIZE', (0,2), (-1,-1), 6.5),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+            ('SPAN', (0,0), (0,1)),
+            ('SPAN', (1,0), (n_p,0)),
+            ('SPAN', (n_p+2,0), (n_p+2,1)),
+            ('SPAN', (n_p+3,0), (n_p+3,1)),
+            ('SPAN', (n_p+4,0), (n_p+4,1)),
+            ('SPAN', (n_p+5,0), (n_p+5,1)),
+        ])
+        det_table = Table(det_data, colWidths=[w_main] + [w_other]*(cols_count-1), repeatRows=2)
         det_table.setStyle(ts_detail)
         elements.append(det_table)
         
-    doc.build(elements)
+    def draw_cover_bg(canvas, doc):
+        canvas.saveState()
+        canvas.setFillColor(colors.HexColor('#1354AE'))
+        canvas.rect(0, 0, doc.width + doc.leftMargin + doc.rightMargin, doc.height + doc.topMargin + doc.bottomMargin, fill=1, stroke=0)
+        canvas.setStrokeColor(colors.HexColor('#65C0EB'))
+        canvas.setLineWidth(15)
+        canvas.rect(20, 20, doc.width + doc.leftMargin + doc.rightMargin - 40, doc.height + doc.topMargin + doc.bottomMargin - 40, fill=0, stroke=1)
+        
+        import os
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        danantara_path = os.path.join(base_dir, '..', 'assets', 'danantara-logo-white.png')
+        bri_path = os.path.join(base_dir, '..', 'assets', 'Logo_BRI-white.png')
+
+        if os.path.exists(danantara_path):
+            canvas.drawImage(danantara_path, 40, doc.height + doc.topMargin + doc.bottomMargin - 90, width=130, height=45, preserveAspectRatio=True, mask='auto')
+        if os.path.exists(bri_path):
+            canvas.drawImage(bri_path, doc.width + doc.leftMargin + doc.rightMargin - 180, doc.height + doc.topMargin + doc.bottomMargin - 95, width=140, height=50, preserveAspectRatio=True, mask='auto')
+
+        canvas.restoreState()
+
+    def draw_later_bg(canvas, doc):
+        canvas.saveState()
+        
+        # Add a subtle thematic border for normal pages
+        canvas.setStrokeColor(colors.HexColor('#1354AE'))
+        canvas.setLineWidth(8)
+        canvas.rect(15, 15, doc.width + doc.leftMargin + doc.rightMargin - 30, doc.height + doc.topMargin + doc.bottomMargin - 30, fill=0, stroke=1)
+        
+        import os
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        danantara_path = os.path.join(base_dir, '..', 'assets', 'danantara-logo.png')
+        bri_path = os.path.join(base_dir, '..', 'assets', 'Logo_BRI.png')
+
+        if os.path.exists(danantara_path):
+            canvas.drawImage(danantara_path, 30, doc.height + doc.topMargin + doc.bottomMargin - 60, width=110, height=38, preserveAspectRatio=True, mask='auto')
+        if os.path.exists(bri_path):
+            canvas.drawImage(bri_path, doc.width + doc.leftMargin + doc.rightMargin - 160, doc.height + doc.topMargin + doc.bottomMargin - 65, width=130, height=45, preserveAspectRatio=True, mask='auto')
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=draw_cover_bg, onLaterPages=draw_later_bg)
+
 
 
 def export_pptx_visual(data_dict, output_path, metadata):
@@ -804,7 +1028,7 @@ def export_pptx_visual(data_dict, output_path, metadata):
     shape.fill.fore_color.rgb = RGBColor(30, 58, 95)
     tf = shape.text_frame
     p = tf.add_paragraph()
-    p.text = "RINGKASAN EKSEKUTIF"
+    p.text = "RINGKASAN GUNUNG SAHARI"
     p.font.bold = True
     p.font.size = Pt(24)
     p.font.color.rgb = RGBColor(255, 255, 255)
@@ -828,7 +1052,7 @@ def export_pptx_visual(data_dict, output_path, metadata):
     box_h = Inches(1.2)
     top = Inches(1.2)
     labels = ["Total DPK (Juta)", "Total Pinjaman (Juta)", "SML Ratio (%)", "NPL Ratio (%)"]
-    vals = [f"{dk:,.0f}", f"{pk:,.0f}", f"{sml:.2f}%", f"{npl:.2f}%"]
+    vals = [f"{dk:,.0f}", f"{pk:,.0f}", f"{sml*100:.2f}%", f"{npl*100:.2f}%"]
     
     for i in range(4):
         left = Inches(0.5 + i * 3.1)
@@ -877,8 +1101,8 @@ def export_pptx_visual(data_dict, output_path, metadata):
         table.cell(r_idx+1, 0).text = kc_nm
         table.cell(r_idx+1, 1).text = f"{k_dk:,.0f}"
         table.cell(r_idx+1, 2).text = f"{k_pk:,.0f}"
-        table.cell(r_idx+1, 3).text = f"{k_sml:.2f}%"
-        table.cell(r_idx+1, 4).text = f"{k_npl:.2f}%"
+        table.cell(r_idx+1, 3).text = f"{k_sml*100:.2f}%"
+        table.cell(r_idx+1, 4).text = f"{k_npl*100:.2f}%"
         
         for c_idx in range(5):
             if (r_idx+1) % 2 == 0:
@@ -959,7 +1183,7 @@ def export_pptx_visual(data_dict, output_path, metadata):
                 
         # Mini cards left
         y_pos = 1.5
-        for t, v in [("Total DPK", f"{k_dk:,.0f}"), ("Pinjaman", f"{k_pk:,.0f}"), ("SML Ratio", f"{k_sml:.2f}%"), ("NPL Ratio", f"{k_npl:.2f}%")]:
+        for t, v in [("Total DPK", f"{k_dk:,.0f}"), ("Pinjaman", f"{k_pk:,.0f}"), ("SML Ratio", f"{k_sml*100:.2f}%"), ("NPL Ratio", f"{k_npl*100:.2f}%")]:
             bx = sl.shapes.add_shape(1, Inches(0.5), Inches(y_pos), Inches(2.5), Inches(1))
             bx.fill.solid(); bx.fill.fore_color.rgb = RGBColor(248, 250, 252)
             bx.line.color.rgb = RGBColor(203, 213, 225)
@@ -995,11 +1219,11 @@ def export_pptx_visual(data_dict, output_path, metadata):
             t.cell(r_idx+1, 0).text = lbl
             for i, p in enumerate(periode_list):
                 v = _sv(row.get("values", {}).get(p, 0))
-                if "%" in lbl: t.cell(r_idx+1, 1+i).text = f"{v:.2f}%"
+                if "%" in lbl: t.cell(r_idx+1, 1+i).text = f"{v*100:.2f}%"
                 else: t.cell(r_idx+1, 1+i).text = f"{v:,.0f}"
                 
             g = _sv(row.get("growth_mtd", 0))
-            t.cell(r_idx+1, cols-1).text = f"{g:.2f}%"
+            t.cell(r_idx+1, cols-1).text = f"{g*100:.2f}%"
             
     # Penutup
     sl = prs.slides.add_slide(blank_slide_layout)

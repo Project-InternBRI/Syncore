@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ApprovalRequest;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogger;
 
 class ApprovalRequestController extends Controller
 {
@@ -79,6 +80,8 @@ class ApprovalRequestController extends Controller
             ]);
         }
 
+        ActivityLogger::log('Sistem (Approval)', 'CREATE_APPROVAL', "Mengajukan permintaan akses: {$request->type}");
+
         return response()->json(['message' => 'Request submitted successfully', 'data' => $approval], 201);
     }
 
@@ -108,6 +111,8 @@ class ApprovalRequestController extends Controller
             'priority' => 'high'
         ]);
 
+        ActivityLogger::log('Sistem (Approval)', 'APPROVE', "Menyetujui permintaan akses dari user ID: {$approval->user_id} ({$approval->type})");
+
         return response()->json(['message' => 'Request approved successfully', 'data' => $approval]);
     }
 
@@ -136,6 +141,8 @@ class ApprovalRequestController extends Controller
             'message' => 'Permintaan akses ' . $approval->type . ' Anda ditolak oleh Admin.',
             'priority' => 'normal'
         ]);
+
+        ActivityLogger::log('Sistem (Approval)', 'REJECT', "Menolak permintaan akses dari user ID: {$approval->user_id} ({$approval->type})");
 
         return response()->json(['message' => 'Request rejected successfully', 'data' => $approval]);
     }

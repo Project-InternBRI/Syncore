@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\ActivityLogger;
 
 class RkaController extends Controller
 {
@@ -85,6 +86,10 @@ class RkaController extends Controller
             }
         }
 
+        if (count($savedData) > 0) {
+            ActivityLogger::log('Perencanaan', 'UPDATE_RKA', count($savedData) . " data RKA berhasil disimpan/diperbarui untuk unit {$request->branch_name}");
+        }
+
         return response()->json([
             'success' => true,
             'data' => $savedData,
@@ -104,6 +109,8 @@ class RkaController extends Controller
         }
 
         $rka->delete();
+
+        ActivityLogger::log('Perencanaan', 'DELETE_RKA', "Menghapus data RKA {$rka->branch_name} - {$rka->kategori} ({$rka->bulan} {$rka->tahun})");
 
         return response()->json([
             'success' => true,

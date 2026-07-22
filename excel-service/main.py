@@ -102,6 +102,75 @@ async def process_ssa(
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
+@app.post("/api/process-paths")
+async def process_ssa_paths(payload: dict):
+    temp_dir = f"/tmp/syncore_links_{uuid.uuid4()}"
+    os.makedirs(temp_dir, exist_ok=True)
+    try:
+        def link_file(path_key, name_key):
+            path = payload.get(path_key)
+            name = payload.get(name_key)
+            if not path or not name:
+                return None
+            
+            ext = os.path.splitext(name)[1]
+            if not ext:
+                ext = '.csv'  # Fallback to .csv if no extension found
+                
+            print(f"LINK_FILE: {path_key}={path}, {name_key}={name}, ext={ext}")
+            
+            link_path = os.path.join(temp_dir, f"file_{uuid.uuid4()}{ext}")
+            os.symlink(path, link_path)
+            return link_path
+            
+        path_simp = link_file('path_simpanan', 'name_simpanan')
+        path_pinj = link_file('path_pinjaman', 'name_pinjaman')
+        path_simp_hist = link_file('path_simpanan_hist', 'name_simpanan_hist')
+        path_pinj_hist = link_file('path_pinjaman_hist', 'name_pinjaman_hist')
+
+        simp_hist_list = [path_simp_hist] if path_simp_hist else []
+        pinj_hist_list = [path_pinj_hist] if path_pinj_hist else []
+
+        print("Starting process_files from paths...")
+        data_dict = process_files(
+            path_simpanan_berjalan=path_simp,
+            path_pinjaman_berjalan=path_pinj,
+            path_simpanan_historis=simp_hist_list,
+            path_pinjaman_historis=pinj_hist_list
+        )
+        print("process_files completed.")
+        
+        # Serialize to temp file
+        import tempfile
+        tmp_fd, out_path = tempfile.mkstemp(suffix='.json', prefix='processed_data_')
+        with os.fdopen(tmp_fd, 'wb') as f:
+            if HAS_ORJSON:
+                f.write(orjson.dumps(data_dict))
+            else:
+                f.write(json.dumps(data_dict, default=str).encode('utf-8'))
+        print(f"Serialization complete: {out_path}")
+            
+        stats = data_dict.get('__stats__', {})
+        metadata_total = {
+            'periode_list': data_dict.get('Total AH Gunsar', {}).get('periode_list', []),
+            'rows': data_dict.get('Total AH Gunsar', {}).get('rows', [])[:5],
+        }
+        
+        return {
+            "success": True, 
+            "data_file": out_path,
+            "stats": stats,
+            "metadata": {"Total AH Gunsar": metadata_total}
+        }
+    except Exception as e:
+        error_msg = traceback.format_exc()
+        print(f"Error in process_ssa_paths: {error_msg}")
+        with open('/tmp/fastapi_error.log', 'a') as f:
+            f.write(error_msg + '\n')
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
 
 @app.post("/api/export/{dashboard_type}")
 async def export_dashboard(dashboard_type: str, payload: dict):

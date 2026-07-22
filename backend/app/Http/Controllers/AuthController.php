@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Services\ActivityLogger;
 
 class AuthController extends Controller
 {
@@ -30,6 +31,8 @@ class AuthController extends Controller
         // $user->tokens()->delete();
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        ActivityLogger::log('Autentikasi', 'LOGIN', 'Berhasil login ke dalam sistem', $user->id);
 
         return response()->json([
             'message' => 'Login berhasil',
@@ -59,6 +62,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        ActivityLogger::log('Autentikasi', 'LOGOUT', 'Berhasil logout dari sistem');
+
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -85,6 +90,8 @@ class AuthController extends Controller
             $user->phone = $request->phone;
         }
         $user->save();
+
+        ActivityLogger::log('Autentikasi', 'UPDATE_PROFILE', 'Memperbarui data profil');
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui',

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GenerateHistoryController;
 use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\ActivityLogController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -53,4 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/approval-requests', [\App\Http\Controllers\ApprovalRequestController::class, 'store']);
     Route::post('/approval-requests/{id}/approve', [\App\Http\Controllers\ApprovalRequestController::class, 'approve']);
     Route::post('/approval-requests/{id}/reject', [\App\Http\Controllers\ApprovalRequestController::class, 'reject']);
+
+    // Activity Log Routes
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 });

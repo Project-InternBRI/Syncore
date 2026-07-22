@@ -12,6 +12,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
     const pathname = usePathname();
     const [user, setUser] = useState<any>(null);
     const [dateTime, setDateTime] = useState(new Date());
+    const [mounted, setMounted] = useState(false);
 
     const routeInfo: Record<string, { title: string, subtitle: string }> = {
         '/': { title: 'Beranda', subtitle: 'Akses cepat ke fitur utama SYNCORE' },
@@ -41,6 +42,7 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
     }
 
     useEffect(() => {
+        setMounted(true);
         const userData = Cookies.get('user_data');
         if (userData) {
             try {
@@ -95,8 +97,8 @@ export default function Header({ title = 'Homepage', subtitle = 'Akses cepat ke 
                         <Calendar className="w-4 h-4" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-700">{formattedDate}</span>
-                        <span className="text-[11px] font-medium text-slate-500">{formattedTime}</span>
+                        <span className="text-xs font-semibold text-slate-700">{mounted ? formattedDate : 'Memuat...'}</span>
+                        <span className="text-[11px] font-medium text-slate-500">{mounted ? formattedTime : '--.-- WIB'}</span>
                     </div>
                 </div>
 

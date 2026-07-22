@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GenerateHistory;
 use App\Models\GenerateSnapshot;
 use App\Services\NotificationService;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -64,22 +65,27 @@ class GenerateHistoryController extends Controller
         $user = $request->user();
 
         try {
-            $pythonApiUrl = 'http://127.0.0.1:8003/api/process';
+            $pythonApiUrl = 'http://127.0.0.1:8003/api/process-paths';
             
-            $http = Http::timeout(1200); // 20 minutes timeout for extremely large files
+            $http = Http::timeout(1200); // 20 minutes timeout
             
-            // Attach files using fopen to prevent memory exhaustion and broken pipes
-            $http = $http->attach('file_simpanan', fopen($request->file('file_simpanan')->getPathname(), 'r'), $request->file('file_simpanan')->getClientOriginalName());
-            $http = $http->attach('file_pinjaman', fopen($request->file('file_pinjaman')->getPathname(), 'r'), $request->file('file_pinjaman')->getClientOriginalName());
+            $request->file("file_simpanan_hist")->storeAs("public/temp", "simpanan_hist.csv"); $request->file("file_pinjaman_hist")->storeAs("public/temp", "pinjaman_hist.csv"); $payload = [
+                'path_simpanan' => $request->file('file_simpanan')->getPathname(),
+                'name_simpanan' => $request->file('file_simpanan')->getClientOriginalName(),
+                'path_pinjaman' => $request->file('file_pinjaman')->getPathname(),
+                'name_pinjaman' => $request->file('file_pinjaman')->getClientOriginalName(),
+            ];
             
             if ($request->hasFile('file_simpanan_hist')) {
-                $http = $http->attach('file_simpanan_hist', fopen($request->file('file_simpanan_hist')->getPathname(), 'r'), $request->file('file_simpanan_hist')->getClientOriginalName());
+                $payload['path_simpanan_hist'] = $request->file('file_simpanan_hist')->getPathname();
+                $payload['name_simpanan_hist'] = $request->file('file_simpanan_hist')->getClientOriginalName();
             }
             if ($request->hasFile('file_pinjaman_hist')) {
-                $http = $http->attach('file_pinjaman_hist', fopen($request->file('file_pinjaman_hist')->getPathname(), 'r'), $request->file('file_pinjaman_hist')->getClientOriginalName());
+                $payload['path_pinjaman_hist'] = $request->file('file_pinjaman_hist')->getPathname();
+                $payload['name_pinjaman_hist'] = $request->file('file_pinjaman_hist')->getClientOriginalName();
             }
 
-            $response = $http->post($pythonApiUrl);
+            $response = $http->post($pythonApiUrl, $payload);
 
             if (!$response->successful()) {
                 Log::error('Python API Error: ' . $response->body());
@@ -183,6 +189,8 @@ class GenerateHistoryController extends Controller
             }
 
             // Notify super admins
+            ActivityLogger::log('Generate & Dasbor', 'GENERATE', "Melakukan proses generate dasbor periode {$periodName}");
+
             NotificationService::sendToSuperAdmins(
                 'generate_ssa_success',
                 'Generate SSA Berhasil',
@@ -329,6 +337,8 @@ class GenerateHistoryController extends Controller
             // Delete the histories
             GenerateHistory::whereIn('id', $ids)->delete();
             
+            ActivityLogger::log('Generate & Dasbor', 'DELETE_RIWAYAT', "Menghapus " . count($ids) . " riwayat generate secara massal");
+            
             return response()->json([
                 'success' => true,
                 'message' => count($ids) . ' riwayat berhasil dihapus.'
@@ -356,6 +366,8 @@ class GenerateHistoryController extends Controller
             
             // Delete the history
             $history->delete();
+            
+            ActivityLogger::log('Generate & Dasbor', 'DELETE_RIWAYAT', "Menghapus riwayat generate periode {$history->period_name}");
             
             return response()->json([
                 'success' => true,
@@ -432,6 +444,7 @@ class GenerateHistoryController extends Controller
             
             $fileName = "{$prefix} AH Gunsar {$dateString}.xlsx";
 
+            ActivityLogger::log('Generate & Dasbor', 'EXPORT_EXCEL', "Mengunduh Excel Dasbor: {$fileName}");
 
             return response($fileContent, 200, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -509,6 +522,8 @@ class GenerateHistoryController extends Controller
             elseif ($dashboardType === 'unit') $prefix = 'Dashboard Unit';
             
             $fileName = "{$prefix} Presentasi AH Gunsar {$dateString}.pdf";
+
+            ActivityLogger::log('Generate & Dasbor', 'EXPORT_PDF', "Mengunduh PDF Dasbor: {$fileName}");
 
             return response($fileContent, 200, [
                 'Content-Type' => 'application/pdf',

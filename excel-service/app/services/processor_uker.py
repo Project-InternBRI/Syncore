@@ -54,18 +54,6 @@ def _sum_saldo_uker(df: pd.DataFrame, uker: str, label: str,
     AND _uker=uker AND _label=label.
     Hasil dalam JUTA RUPIAH.
     """
-    j = jenis.lower() if jenis else ''
-    s = segmentasi.lower() if segmentasi else ''
-
-    if hasattr(df, 'attrs') and 'grouped_dict' in df.attrs:
-        if uker == '__TOTAL_KCP__':
-            total = df.attrs['grouped_dict_kcp'].get((label, j, s), 0.0)
-        elif uker == '__TOTAL_UNIT__':
-            total = df.attrs['grouped_dict_unit'].get((label, j, s), 0.0)
-        else:
-            total = df.attrs['grouped_dict'].get((uker, label, j, s), 0.0)
-        return float(total) / 1_000_000
-
     if uker == '__TOTAL_KCP__':
         mask = df['_uker_type'] == 'KCP'
     elif uker == '__TOTAL_UNIT__':
@@ -112,23 +100,15 @@ def hitung_pinjaman_uker(df_pinj: pd.DataFrame, uker: str, label: str,
     if '_uker' not in df_pinj.columns:
         return _zero()
 
-    if hasattr(df_pinj, 'attrs') and 'grouped_dict' in df_pinj.attrs:
-        if uker == '__TOTAL_KCP__':
-            df = df_pinj.attrs['grouped_dict_kcp'].get(label, pd.DataFrame())
-        elif uker == '__TOTAL_UNIT__':
-            df = df_pinj.attrs['grouped_dict_unit'].get(label, pd.DataFrame())
-        else:
-            df = df_pinj.attrs['grouped_dict'].get((uker, label), pd.DataFrame())
+    if uker == '__TOTAL_KCP__':
+        mask = df_pinj['_uker_type'] == 'KCP'
+    elif uker == '__TOTAL_UNIT__':
+        mask = df_pinj['_uker_type'] == 'Unit'
     else:
-        if uker == '__TOTAL_KCP__':
-            mask = df_pinj['_uker_type'] == 'KCP'
-        elif uker == '__TOTAL_UNIT__':
-            mask = df_pinj['_uker_type'] == 'Unit'
-        else:
-            mask = df_pinj['_uker'] == uker
+        mask = df_pinj['_uker'] == uker
 
-        mask &= df_pinj['_label'] == label
-        df = df_pinj[mask].copy()
+    mask &= df_pinj['_label'] == label
+    df = df_pinj[mask].copy()
 
     if df.empty:
         return _zero()
@@ -345,7 +325,7 @@ def process_uker_from_df(
     baki_col   = _find_col(df_p_all, "Baki Debet", "Baki", "Outstanding")
     kolekt_col = _find_col(df_p_all, "Kolektabilitas One Obligor", "Kolektabilitas", "Kolekt")
     produk_col = _find_col(df_p_all, "Produk", "PRODUK")
-    segmen_col = _find_col(df_p_all, "SEGMEN_2025", "Segmen_2025", "Segmen", "SEGMEN")
+    segmen_col = _find_col(df_p_all, "SEGMEN_2025", "Segmen_2025", "Segmen", "SEGMEN", "Segmentasi BPR")
 
     uker_col_p = _find_col(df_p_all, "Nama Uker", "NAMA UKER", "NamaUker", "nama_uker")
 
@@ -357,13 +337,7 @@ def process_uker_from_df(
     # ── 2. MAP UKER (SIMPANAN) ───────────────────────────────────
     cb(58, "(KCP/Unit) Mapping Nama Uker...")
     df_s_all['_uker']      = df_s_all[uker_col_s].astype(str).str.strip()
-    # Vectorized classify_uker
-    uker_upper = df_s_all['_uker'].str.upper()
-    df_s_all['_uker_type'] = pd.Series(None, index=df_s_all.index, dtype=object)
-    df_s_all.loc[uker_upper.str.contains('KCP', na=False), '_uker_type'] = 'KCP'
-    df_s_all.loc[
-        uker_upper.str.contains('BRI UNIT|UNIT|TERAS', na=False, regex=True) &
-        ~uker_upper.str.contains('KCP', na=False), '_uker_type'] = 'Unit'
+    df_s_all['_uker_type'] = df_s_all['_uker'].apply(classify_uker)
 
     df_s_all['_jenis']       = df_s_all[jenis_col].astype(str).str.strip()
     df_s_all['_segmentasi']  = df_s_all[seg_col].astype(str).str.strip()
@@ -371,13 +345,7 @@ def process_uker_from_df(
     # MAP UKER (PINJAMAN)
     if uker_col_p:
         df_p_all['_uker']      = df_p_all[uker_col_p].astype(str).str.strip()
-        # Vectorized classify_uker
-        uker_upper_p = df_p_all['_uker'].str.upper()
-        df_p_all['_uker_type'] = pd.Series(None, index=df_p_all.index, dtype=object)
-        df_p_all.loc[uker_upper_p.str.contains('KCP', na=False), '_uker_type'] = 'KCP'
-        df_p_all.loc[
-            uker_upper_p.str.contains('BRI UNIT|UNIT|TERAS', na=False, regex=True) &
-            ~uker_upper_p.str.contains('KCP', na=False), '_uker_type'] = 'Unit'
+        df_p_all['_uker_type'] = df_p_all['_uker'].apply(classify_uker)
     else:
         df_p_all['_uker']      = 'Unknown'
         df_p_all['_uker_type'] = None
@@ -394,28 +362,25 @@ def process_uker_from_df(
     baki_col   = 'Baki Debet'
     periode_p  = 'Month, Day, Year of Periode'
 
+    # ── FALLBACK: File historis mungkin tidak punya SEGMEN_2025 tapi punya Segmen ──
+    if 'Segmen' in df_p_all.columns and 'SEGMEN_2025' in df_p_all.columns:
+        mask_nan = df_p_all['SEGMEN_2025'].isna() | (df_p_all['SEGMEN_2025'].astype(str).str.strip() == '')
+        df_p_all.loc[mask_nan, 'SEGMEN_2025'] = df_p_all.loc[mask_nan, 'Segmen']
+        print(f"[UKER SEGMEN FALLBACK] {mask_nan.sum()} baris diisi dari kolom 'Segmen'")
+
     df_p_all = prepare_pinjaman(df_p_all)
-    # NOTE: segmen_dashboard sudah dihitung di dalam prepare_pinjaman via vectorized function
-    # Tidak perlu apply(classify_pinjaman_exact) lagi di sini
+    df_p_all['segmen_dashboard'] = df_p_all.apply(classify_pinjaman_exact, axis=1)
 
     # ── 6. PARSE TANGGAL ─────────────────────────────────────────
     cb(38, "Parsing tanggal periode (Uker)...")
 
-    # Vectorized date parsing (jauh lebih cepat dari apply)
-    def _parse_tanggal_vec(series: pd.Series) -> pd.Series:
-        result = pd.to_datetime(series, errors='coerce', dayfirst=True)
-        failed = result.isna() & series.notna()
-        if failed.any():
-            result[failed] = series[failed].apply(parse_tanggal_id)
-        return result
-
     if periode_s and periode_s in df_s_all.columns:
-        df_s_all['_tanggal'] = _parse_tanggal_vec(df_s_all[periode_s])
+        df_s_all['_tanggal'] = df_s_all[periode_s].apply(parse_tanggal_id)
     else:
         df_s_all['_tanggal'] = None
 
     if 'Month, Day, Year of Periode' in df_p_all.columns:
-        df_p_all['_tanggal'] = _parse_tanggal_vec(df_p_all['Month, Day, Year of Periode'])
+        df_p_all['_tanggal'] = df_p_all['Month, Day, Year of Periode'].apply(parse_tanggal_id)
     else:
         df_p_all['_tanggal'] = None
 
@@ -437,27 +402,16 @@ def process_uker_from_df(
     df_s_all['_label'] = df_s_all['_tanggal'].apply(_apply_lbl_uker)
     df_p_all['_label'] = df_p_all['_tanggal'].apply(_apply_lbl_uker)
 
-    # --- PRE-AGGREGATION OPTIMIZATION ---
-    df_s_all['_jenis_lower'] = df_s_all['_jenis'].str.lower()
-    df_s_all['_seg_lower'] = df_s_all['_segmentasi'].str.lower()
-    df_s_all.attrs['grouped_dict'] = df_s_all.groupby(['_uker', '_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
-    df_s_all.attrs['grouped_dict_kcp'] = df_s_all[df_s_all['_uker_type'] == 'KCP'].groupby(['_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
-    df_s_all.attrs['grouped_dict_unit'] = df_s_all[df_s_all['_uker_type'] == 'Unit'].groupby(['_label', '_jenis_lower', '_seg_lower'])[saldo_col].sum().to_dict()
-    
-    df_p_all.attrs['grouped_dict'] = {k: v for k, v in df_p_all.groupby(['_uker', '_label'])}
-    df_p_all.attrs['grouped_dict_kcp'] = {k: v for k, v in df_p_all[df_p_all['_uker_type'] == 'KCP'].groupby(['_label'])}
-    df_p_all.attrs['grouped_dict_unit'] = {k: v for k, v in df_p_all[df_p_all['_uker_type'] == 'Unit'].groupby(['_label'])}
-    # ------------------------------------
-
-    # Kumpulkan semua periode unik (VECTORIZED - tanpa iterrows)
+    # Kumpulkan semua periode unik
     tgl_set: dict[str, pd.Timestamp] = {}
-    for df_tmp in [df_s_all, df_p_all]:
-        df_valid = df_tmp.dropna(subset=['_tanggal'])
-        if not df_valid.empty:
-            grp = df_valid.groupby('_label')['_tanggal'].max()
-            for lbl, tgl in grp.items():
-                if lbl not in tgl_set or tgl > tgl_set[lbl]:
-                    tgl_set[lbl] = tgl
+    for _, r in df_s_all.dropna(subset=['_tanggal']).iterrows():
+        lbl, tgl = r['_label'], r['_tanggal']
+        if lbl not in tgl_set or tgl > tgl_set[lbl]:
+            tgl_set[lbl] = tgl
+    for _, r in df_p_all.dropna(subset=['_tanggal']).iterrows():
+        lbl, tgl = r['_label'], r['_tanggal']
+        if lbl not in tgl_set or tgl > tgl_set[lbl]:
+            tgl_set[lbl] = tgl
 
     periodes_sorted = sorted(
         [(lbl, tgl) for lbl, tgl in tgl_set.items()], key=lambda x: x[1]

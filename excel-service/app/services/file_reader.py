@@ -213,11 +213,18 @@ def _parse_num(val) -> float:
 
 
 def convert_numerics(df: pd.DataFrame) -> pd.DataFrame:
-    """Konversi kolom Saldo dan Baki Debet ke float."""
+    """Konversi kolom Saldo dan Baki Debet ke float secara vectorized."""
     for col in ['Saldo', 'Baki Debet']:
         if col not in df.columns:
             continue
-        df[col] = df[col].apply(_parse_num)
+        if df[col].dtype != float and df[col].dtype != int:
+            cleaned = df[col].astype(str).str.strip().str.replace('Rp', '', regex=False).str.replace(' ', '', regex=False)
+            # Standarisasi format Indonesia: 1.234.567,89 -> 1234567.89
+            # Hapus titik sebagai pemisah ribuan
+            cleaned = cleaned.str.replace(r'\.(?=\d{3})', '', regex=True)
+            # Ubah koma desimal menjadi titik desimal
+            cleaned = cleaned.str.replace(',', '.', regex=False)
+            df[col] = pd.to_numeric(cleaned, errors='coerce').fillna(0.0)
     return df
 
 
