@@ -232,10 +232,14 @@ def parse_numeric(val) -> float:
         # Hanya koma → koma sebagai desimal
         s = s.replace(',', '.')
     elif dot_pos != -1:
-        # Hanya titik → jika lebih dari satu kemungkinan ribuan
+        # Hanya titik → jika lebih dari satu, pasti ribuan
         if s.count('.') > 1:
             s = s.replace('.', '')
-        # jika hanya satu titik → biarkan sebagai desimal
+        else:
+            # jika hanya satu titik, cek apakah 3 digit di belakangnya
+            if len(s) - dot_pos == 4:
+                s = s.replace('.', '') # ribuan
+            # selain itu, biarkan sebagai desimal
 
     try:
         return float(s)
@@ -403,12 +407,17 @@ def _read_ssa_csv(path: str, label: str) -> pd.DataFrame:
 
 
 def _find_col(df: pd.DataFrame, *candidates) -> str | None:
-    """Cari kolom dari beberapa kandidat (exact match, lalu partial)."""
+    """Cari kolom dari beberapa kandidat (exact match setelah strip, lalu partial)."""
     cols = list(df.columns)
+    
+    # 1. Exact match (case-insensitive & stripped)
     for c in candidates:
-        if c in cols:
-            return c
-    # Partial match case-insensitive
+        c_clean = c.strip().lower()
+        for col in cols:
+            if col.strip().lower() == c_clean:
+                return col
+                
+    # 2. Partial match case-insensitive
     for c in candidates:
         for col in cols:
             if c.lower() in col.lower():
@@ -1163,9 +1172,10 @@ def process_files(
 
     df_s_all = pd.concat(frames_s, ignore_index=True)
     df_s_all.dropna(how='all', inplace=True)
+    df_s_all.drop_duplicates(inplace=True)
     n_rows_s = len(df_s_all)
 
-    print(f"\n[SIMPANAN] Total baris: {n_rows_s}")
+    print(f"\n[SIMPANAN] Total baris (setelah drop_duplicates): {n_rows_s}")
     print(f"[SIMPANAN] Kolom: {list(df_s_all.columns[:10])}")
 
     # ── 2. BACA FILE PINJAMAN ─────────────────────────────────────
@@ -1181,9 +1191,10 @@ def process_files(
 
     df_p_all = pd.concat(frames_p, ignore_index=True)
     df_p_all.dropna(how='all', inplace=True)
+    df_p_all.drop_duplicates(inplace=True)
     n_rows_p = len(df_p_all)
 
-    print(f"\n[PINJAMAN] Total baris: {n_rows_p}")
+    print(f"\n[PINJAMAN] Total baris (setelah drop_duplicates): {n_rows_p}")
     print(f"[PINJAMAN] Kolom: {list(df_p_all.columns[:10])}")
 
     # ── 3. TEMUKAN KOLOM ──────────────────────────────────────────
@@ -1272,6 +1283,14 @@ def process_files(
     df_s['_jenis'] = df_s[jenis_col].astype(str).str.strip()
     # Segmentasi BPR (simpanan)
     df_s['_segmentasi'] = df_s[seg_col].astype(str).str.strip()
+    
+    # ── FALLBACK SIMPANAN: Historis mungkin hanya punya 'Segmentasi' ──
+    # Jika baris tersebut NaN di seg_col (Segmentasi BPR), ambil dari 'Segmentasi'
+    if 'Segmentasi' in df_s.columns and seg_col != 'Segmentasi':
+        mask_nan = df_s['_segmentasi'].isin(['', 'nan', 'None']) | df_s[seg_col].isna()
+        df_s.loc[mask_nan, '_segmentasi'] = df_s.loc[mask_nan, 'Segmentasi'].astype(str).str.strip()
+        n_filled = mask_nan.sum()
+        print(f"[SEGMENTASI SIMPANAN FALLBACK] {n_filled} baris diisi dari kolom 'Segmentasi'")
 
     # Produk (pinjaman)
     produk_col = _find_col(df_p, "Produk", "PRODUK", "produk")

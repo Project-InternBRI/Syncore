@@ -1032,6 +1032,12 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
         if row_type in ("header", "header_value") or (row_type == "bold" and label in ("SML", "NPL")):
             current_section = label
             
+        # Override is_terbalik based on section correctly, overriding processor.py's faulty exact-match logic
+        if current_section in ("SML", "NPL"):
+            row_data['is_terbalik'] = True
+        else:
+            row_data['is_terbalik'] = False
+            
         rka_vals = get_rka_vals(current_section, label)
 
         if row_type == "separator":
@@ -1222,6 +1228,9 @@ def _write_header_value(ws, row: int, row_data: dict, rka_vals: list,
     # Growth (kalau ada)
     is_pct = '%' in label
     is_terbalik = row_data.get('is_terbalik', False)
+    
+    from openpyxl.formatting.rule import CellIsRule
+    
     for col, key in [(COL_DTD, "dtd"), (COL_MTD, "mtd"),
                      (COL_YTD, "ytd"), (COL_YOY, "yoy")]:
         val = row_data.get(key)
@@ -1235,14 +1244,32 @@ def _write_header_value(ws, row: int, row_data: dict, rka_vals: list,
             c.font = font_obj
         else:
             try:
-                num_val = float(val)
-                c.value = num_val
+                selisih = float(val)
+                c.value = selisih
                 if is_pct:
                     c.number_format = "0.00%"
                 else:
                     c.number_format = "#,##0;-#,##0;\"-\""
                     
-                c.font = _growth_font(num_val, is_terbalik, is_bold=True)
+                c.font = font_obj
+                
+                col_ltr = get_column_letter(col)
+                
+                green_font = _font(bold=True, size=9, color="16A34A")
+                red_font = _font(bold=True, size=9, color="DC2626")
+                
+                if not is_terbalik:
+                    # Normal: Green if > 0, Red if < 0
+                    rule_green = CellIsRule(operator='greaterThan', formula=['0'], font=green_font)
+                    rule_red = CellIsRule(operator='lessThan', formula=['0'], font=red_font)
+                else:
+                    # Terbalik: Green if < 0, Red if > 0
+                    rule_green = CellIsRule(operator='lessThan', formula=['0'], font=green_font)
+                    rule_red = CellIsRule(operator='greaterThan', formula=['0'], font=red_font)
+                    
+                ws.conditional_formatting.add(f"{col_ltr}{row}", rule_green)
+                ws.conditional_formatting.add(f"{col_ltr}{row}", rule_red)
+                
             except (ValueError, TypeError):
                 c.value = val if val == "-" else ""
                 c.font = font_obj

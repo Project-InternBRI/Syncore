@@ -69,7 +69,7 @@ class GenerateHistoryController extends Controller
             
             $http = Http::timeout(1200); // 20 minutes timeout
             
-            $request->file("file_simpanan_hist")->storeAs("public/temp", "simpanan_hist.csv"); $request->file("file_pinjaman_hist")->storeAs("public/temp", "pinjaman_hist.csv"); $payload = [
+            $payload = [
                 'path_simpanan' => $request->file('file_simpanan')->getPathname(),
                 'name_simpanan' => $request->file('file_simpanan')->getClientOriginalName(),
                 'path_pinjaman' => $request->file('file_pinjaman')->getPathname(),
