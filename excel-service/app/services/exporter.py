@@ -691,9 +691,21 @@ def export_to_excel(data_dict: dict,
 
     if "Total AH Gunsar" in data_dict:
         ws = wb.create_sheet(title="Total AH Gunsar")
-        # For Total AH Gunsar, sum up all branches? Or if not provided, leave empty.
-        # RKA usually doesn't apply to the total unless computed. Let's pass empty for now.
-        _write_sheet(ws, "Total AH Gunsar", data_dict["Total AH Gunsar"], {})
+        
+        # Calculate sum of all RKA for Total AH Gunsar, ONLY for KC branches!
+        total_rka = {}
+        for kc, months_data in rka_records_by_month_and_kc.items():
+            if kc not in kc_order:
+                continue
+            for m, metrics in months_data.items():
+                if m not in total_rka:
+                    total_rka[m] = {}
+                for metric_key, val in metrics.items():
+                    if metric_key not in total_rka[m]:
+                        total_rka[m][metric_key] = 0
+                    total_rka[m][metric_key] += val
+                    
+        _write_sheet(ws, "Total AH Gunsar", data_dict["Total AH Gunsar"], total_rka)
 
     try:
         wb.save(str(out))
@@ -966,7 +978,6 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
         
         cols = mapping.get((section, label), [])
         if not cols: return vals
-        if 'pct' in cols[0] and kc_name == "Total AH Gunsar": return vals
             
         MONTHS_MAP = {
             'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',

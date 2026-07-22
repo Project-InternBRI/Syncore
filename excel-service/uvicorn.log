@@ -1,6 +1,311 @@
-INFO:     Started server process [54329]
+INFO:     Started server process [7900]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8003 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50415 - "POST /api/export-pdf/kc HTTP/1.1" 200 OK
 [SUCCESS] Dashboard selesai — footer di baris 89
-INFO:     127.0.0.1:64907 - "POST /api/export/kc HTTP/1.1" 200 OK
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=2861457.55122587, rka=3388239.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=923858.5398696301, rka=1179588.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=688257.86303549, rka=883406.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=1249341.14832075, rka=1325245.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=1612116.40290512, rka=2062994.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=7553666.797279869, rka=5251626.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=5516422.170751019, rka=3298775.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=2037244.62652885, rka=1952851.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=1899722.3805388203, rka=1926741.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=65183.73050356, rka=59724.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=656113.4955869, rka=652361.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=1178425.1544483602, rka=1214656.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=235454.13732712998, rka=101607.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.123941, rka=0.05273516263991891
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=7065.72938724, rka=2872.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.108397, rka=0.048087870872681
+[DEBUG PENCAPAIAN] baris=Small, terbaru=100872.09979561, rka=52957.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.153742, rka=0.08117744622992484
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=127516.30814428, rka=45778.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.108209, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=159157.14404931, rka=130546.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.083779, rka=0.06775482537611438
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=3741.8246685, rka=4140.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.057404, rka=0.0021487060274318136
+[DEBUG PENCAPAIAN] baris=Small, terbaru=94075.20096373, rka=72401.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.143383, rka=0.037576923935287616
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=61340.11841708, rka=54005.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.052053, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=2617.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=27197.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=9360.0
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=1852456.25081589, rka=1928283.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=931061.4872351, rka=959740.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=287609.1640495099, rka=374587.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=633785.5995312801, rka=593956.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=1218670.65128461, rka=1334327.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=1836445.85070941, rka=1499891.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=606302.1862744599, rka=467600.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=1230143.6644349499, rka=1032291.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=764460.42929181, rka=672060.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=281344.22503395, rka=270940.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=476292.46388214, rka=401120.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=6823.74037572, rka=0.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=83734.36728157, rka=48165.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.109534, rka=0.07166770824033568
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=46788.19847416, rka=24979.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.166302, rka=0.09219384365542187
+[DEBUG PENCAPAIAN] baris=Small, terbaru=36946.168807409995, rka=23186.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.07757, rka=0.057803151176705224
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=43752.98417601, rka=44383.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.057234, rka=0.06604023450287176
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=14532.65132479, rka=15185.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.051654, rka=0.02259470880576139
+[DEBUG PENCAPAIAN] baris=Small, terbaru=22396.5924755, rka=21681.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.047023, rka=0.032260512454245154
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=6823.74037572, rka=7517.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=1.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=8063.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=5543.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=0.392
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=7572716.784164039, rka=7996158.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=3387454.9021269204, rka=3264506.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=2075664.4374359301, rka=2179118.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=2109597.44460119, rka=2552534.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=5463119.33956285, rka=5443624.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=170521699.4153191, rka=160471776.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=66274617.50614061, rka=88899604.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=104247081.90917847, rka=71572172.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=5698945.034072749, rka=5615879.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=1174538.7136421301, rka=865915.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=1121869.41259677, rka=1205587.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=3402536.90783385, rka=3544377.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=553676.33668494, rka=235509.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.097154, rka=0.041936266789223915
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=2299.7238422, rka=1495.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.001958, rka=0.0017264974044796544
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=184904.04648078, rka=99909.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.040868, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=366472.56636195997, rka=134105.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.080999, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=230788.24328407, rka=250938.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.040497, rka=0.0446836550431375
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=0.0, rka=2837.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.0, rka=0.0005051747019478162
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=72327.053852, rka=86368.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.015986, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=158461.18943207, rka=161733.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.035024, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=0.047
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=13721.0
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=2587044.7727195797, rka=2613174.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=786887.55766474, rka=931605.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=1115799.3440979398, rka=847224.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=684357.8709569, rka=834345.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=1902686.9017626797, rka=1778829.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=968459.26369318, rka=464179.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=624786.47464318, rka=96944.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=343672.78905, rka=367235.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=1031563.80726945, rka=1033721.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=783439.6131568201, rka=792708.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=247629.50932763002, rka=241013.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=494.684785, rka=0.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=137360.39719975, rka=66193.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.133157, rka=0.06403371896285362
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=90911.30799102, rka=52657.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.116041, rka=0.06642672964067475
+[DEBUG PENCAPAIAN] baris=Small, terbaru=45974.142835729996, rka=13536.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.185657, rka=0.05616294556725156
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=474.946373, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.960099, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=56124.89986982, rka=51980.004
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.054408, rka=0.0502843649301891
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=39314.10647608, rka=36427.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.050181, rka=0.035238715281976474
+[DEBUG PENCAPAIAN] baris=Small, terbaru=16806.43983474, rka=15553.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.067869, rka=0.015045645778696572
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=4.353559, rka=0.004
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.008801, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=16079.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=5389.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=0.445
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=1929381.40342868, rka=1904417.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=896717.2359225501, rka=856203.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=612604.98243243, rka=425457.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=420059.18507370003, rka=622757.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=1509322.21835498, rka=1281660.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=1847921.30708363, rka=787388.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=1039287.98721363, rka=214793.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=808633.31987, rka=572595.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=1213122.06085493, rka=1251394.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=457569.01367574, rka=451209.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=365470.89672968, rka=410446.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=390082.15044951, rka=389739.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=139245.29052632002, rka=67623.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.114783, rka=0.05403813666998563
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=47451.567163010004, rka=23515.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.103704, rka=0.052115538475517996
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=54632.81468868, rka=29076.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.072308, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=37160.90867463, rka=15032.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.049184, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=77346.27475188, rka=68162.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.063758, rka=0.0544688563314192
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=32496.280035, rka=28006.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.071019, rka=0.022379842000201374
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=30274.263819, rka=25209.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.040069, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=14575.730897880001, rka=14947.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.019291, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=0.577
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=12800.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=1713.0
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=1890156.8903142698, rka=1639005.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=444679.03035522, rka=639354.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=660275.2788156599, rka=318886.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=785202.58114339, rka=680765.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=1104954.30917088, rka=958240.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=1064246.83379705, rka=147060.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=1045866.8337970499, rka=112734.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=18380.0, rka=34326.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=473085.12510775006, rka=460069.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=33657.7961314, rka=32401.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=439410.29613335006, rka=427668.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=17.032843, rka=0.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=58369.96984765, rka=50367.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.123382, rka=0.10947705670236421
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=3112.203439, rka=2603.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.092466, rka=0.08033702663498041
+[DEBUG PENCAPAIAN] baris=Small, terbaru=55257.76640865, rka=47764.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.125754, rka=0.11168476481756877
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=40565.875626119996, rka=5565.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.085748, rka=0.012096011685203741
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=3433.928543, rka=3520.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.102025, rka=0.007651026259104613
+[DEBUG PENCAPAIAN] baris=Small, terbaru=37131.947083119994, rka=2045.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.084504, rka=0.0044449854260991285
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=0.814
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=8940.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=0.032
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=1068907.6201687302, rka=1169934.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=374225.98625163006, rka=432393.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=282982.2468806, rka=377369.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=411699.38703650003, rka=360172.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=657208.2331322301, rka=809762.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=5514712.902267819, rka=3721554.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=1886546.19289152, rka=1078268.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=3628166.7093762998, rka=2643286.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=275721.52531728003, rka=281111.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=275707.85901028005, rka=281111.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=13.666307, rka=0.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=44174.62897334, rka=39531.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.160215, rka=0.14062416625461116
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=44174.62897334, rka=39531.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.160223, rka=0.14062416625461116
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=67401.68199604002, rka=53954.0
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.244456, rka=0.19193130115861706
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=None, rka=0.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=67392.68035804002, rka=53954.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.244435, rka=0.19193130115861706
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.0, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=9.001638, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.658674, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=0.336
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=8898.0
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=0.366
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=Dana Pihak Ketiga, terbaru=19762121.27283706, rka=20639210.0
+[DEBUG PENCAPAIAN] baris=Tabungan, terbaru=7744884.7394257905, rka=8263389.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=5723193.31674756, rka=5406047.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=6294043.216663711, rka=6969774.0
+[DEBUG PENCAPAIAN] baris=CASA, terbaru=13468078.05617335, rka=13669436.0
+[DEBUG PENCAPAIAN] baris=DPK Korporasi, terbaru=189307152.37015003, rka=172343474.0
+[DEBUG PENCAPAIAN] baris=Giro, terbaru=76993829.35171148, rka=94168718.0
+[DEBUG PENCAPAIAN] baris=Deposito, terbaru=112313323.01843855, rka=78174756.0
+[DEBUG PENCAPAIAN] baris=Pinjaman, terbaru=11356620.36245279, rka=11240975.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=1163625.36482573, rka=1155773.0
+[DEBUG PENCAPAIAN] baris=Small, terbaru=3727261.35125817, rka=3320397.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=1487340.3093264499, rka=1616033.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=4978393.337042441, rka=5148772.0
+[DEBUG PENCAPAIAN] baris=SML, terbaru=1252015.1278407, rka=608995.0
+[DEBUG PENCAPAIAN] baris=SML %, terbaru=0.110245, rka=0.05417635036106743
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=147877.43929142, rka=83111.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.127083, rka=0.07190944934688732
+[DEBUG PENCAPAIAN] baris=Small, terbaru=332976.09782595, rka=201984.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.089335, rka=0.0608312801149983
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=239536.86116946, rka=128985.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.037047, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=531624.72955387, rka=194915.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.082222, rka=0.0
+[DEBUG PENCAPAIAN] baris=NPL, terbaru=675137.1037532501, rka=605528.004
+[DEBUG PENCAPAIAN] baris=NPL %, terbaru=0.059449, rka=0.05386792551357867
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=61022.51101236999, rka=59272.0
+[DEBUG PENCAPAIAN] baris=Mikro %, terbaru=0.052442, rka=0.005272852221448762
+[DEBUG PENCAPAIAN] baris=Small, terbaru=270299.14075013, rka=196477.0
+[DEBUG PENCAPAIAN] baris=Small %, terbaru=0.07252, rka=0.017478643978836354
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR, terbaru=102601.317671, rka=111577.0
+[DEBUG PENCAPAIAN] baris=Konsumer - KPR %, terbaru=0.015868, rka=0.0
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel, terbaru=241214.13431975, rka=238202.004
+[DEBUG PENCAPAIAN] baris=Konsumer - Briguna Ritel %, terbaru=0.037307, rka=0.0
+[DEBUG PENCAPAIAN] baris=Mikro, terbaru=None, rka=26760.727000000003
+[DEBUG PENCAPAIAN] baris=Small, terbaru=None, rka=68767.04699999999
+[DEBUG PENCAPAIAN] baris=Konsumer, terbaru=None, rka=24795.235
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+[DEBUG PENCAPAIAN] baris=, terbaru=None, rka=None
+INFO:     127.0.0.1:50421 - "POST /api/export/kc HTTP/1.1" 200 OK

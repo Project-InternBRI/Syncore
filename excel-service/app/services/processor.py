@@ -994,6 +994,7 @@ def tentukan_periode_referensi(periode_list, tanggal_terbaru):
     return hasil
 
 def hitung_pencapaian_rka(nama_baris, nilai_terbaru, rka):
+    print(f"[DEBUG PENCAPAIAN] baris={nama_baris}, terbaru={nilai_terbaru}, rka={rka}")
     if not nilai_terbaru or not rka or rka == 0:
         return None
     if nama_baris in TIPE_BARIS_TERBALIK:

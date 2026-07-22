@@ -174,15 +174,38 @@ def export_uker_to_excel(data_dict: dict, output_path: str,
         else:
             ws = wb.create_sheet(title=sheet_name)
 
-        # Match branch: normalize key (strip kode prefix) then lookup in RKA dict
-        key_norm = normalize_uker_name(key)
-        rka_for_branch = rka_records_by_month_and_uker.get(key_norm, {})
-
-        # Fallback: jika tidak ditemukan persis, coba substring match
-        if not rka_for_branch:
-            for uker_db_norm, rka_data in rka_records_by_month_and_uker.items():
-                if uker_db_norm in key_norm or key_norm in uker_db_norm:
-                    rka_for_branch = rka_data
+        if key in ("Total KCP", "Total Unit"):
+            # Hitung jumlah RKA HANYA untuk cabang (KCP/Unit) yang ada di entity_keys
+            rka_for_branch = {}
+            for ek in entity_keys:
+                # Cari RKA untuk entity_key ini
+                ek_norm = normalize_uker_name(ek)
+                ek_rka = rka_records_by_month_and_uker.get(ek_norm, {})
+                if not ek_rka:
+                    for uker_db_norm, rka_data in rka_records_by_month_and_uker.items():
+                        if uker_db_norm in ek_norm or ek_norm in uker_db_norm:
+                            ek_rka = rka_data
+                            break
+                
+                # Tambahkan ke total
+                for m, metrics in ek_rka.items():
+                    if m not in rka_for_branch:
+                        rka_for_branch[m] = {}
+                    for metric_key, val in metrics.items():
+                        if metric_key not in rka_for_branch[m]:
+                            rka_for_branch[m][metric_key] = 0
+                        rka_for_branch[m][metric_key] += val
+        else:
+            # Match branch: normalize key (strip kode prefix) then lookup in RKA dict
+            key_norm = normalize_uker_name(key)
+            rka_for_branch = rka_records_by_month_and_uker.get(key_norm, {})
+            
+            # Fallback: jika tidak ditemukan persis, coba substring match
+            if not rka_for_branch:
+                for uker_db_norm, rka_data in rka_records_by_month_and_uker.items():
+                    if uker_db_norm in key_norm or key_norm in uker_db_norm:
+                        rka_for_branch = rka_data
+                        break
                     print(f"[RKA UKER MATCH] '{key}' → '{uker_db_norm}' (substring)")
                     break
 

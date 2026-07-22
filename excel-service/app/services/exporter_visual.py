@@ -579,10 +579,8 @@ def export_pdf_visual(data_dict, output_path, metadata):
     elements.append(Paragraph("<b><i>Reinforce</i></b> <i>the</i> <b><i>Network</i></b><i>, Win</i> <b><i>Sustainable</i></b> <i>Growth</i>", cover_subtitle_style))
     elements.append(Paragraph("<b>Area Head Gunung Sahari</b><br/><b>Region 6 - Jakarta 1</b>", cover_bottom_style))
     
-    from datetime import datetime
-    now_str = datetime.now().strftime('%d %B %Y %H:%M:%S')
     elements.append(Spacer(1, 100))
-    elements.append(Paragraph(f"<b>Periode: {periode}</b><br/><b>Generated at: {now_str}</b>", cover_footer_style))
+    elements.append(Paragraph(f"<b>Periode: {periode}</b>", cover_footer_style))
     
     elements.append(PageBreak())
     
@@ -939,7 +937,7 @@ def export_pdf_visual(data_dict, output_path, metadata):
         
         import os
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        danantara_path = os.path.join(base_dir, '..', 'assets', 'danantara-logo-white.png')
+        danantara_path = os.path.join(base_dir, '..', 'assets', 'danantara-logo.png')
         bri_path = os.path.join(base_dir, '..', 'assets', 'Logo_BRI-white.png')
 
         if os.path.exists(danantara_path):
