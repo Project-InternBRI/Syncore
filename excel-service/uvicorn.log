@@ -1,46 +1,6 @@
-INFO:     Started server process [90128]
+INFO:     Started server process [54329]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8003 (Press CTRL+C to quit)
 [SUCCESS] Dashboard selesai — footer di baris 89
-INFO:     127.0.0.1:63194 - "POST /api/export/kc HTTP/1.1" 200 OK
-[RKA UKER] '00433 -- KCP SENEN JAYA' → 12 bulan RKA tersedia
-[RKA UKER] '00504 -- KCP Abdul Muis' → 12 bulan RKA tersedia
-[RKA UKER] '00506 -- KCP RSPAD' → 12 bulan RKA tersedia
-[RKA UKER] '00507 -- KCP Depkeu' → 12 bulan RKA tersedia
-[RKA UKER] '00532 -- KCP PASAR TANAH ABANG' → 12 bulan RKA tersedia
-[RKA UKER] '00558 -- KCP PERTAMINA' → 12 bulan RKA tersedia
-[RKA UKER] '00596 -- KCP LEMHANAS' → 12 bulan RKA tersedia
-[RKA UKER] '01119 -- KCP TOMANG' → 12 bulan RKA tersedia
-[RKA UKER] '01179 -- KCP PANGERAN JAYAKARTA' → 12 bulan RKA tersedia
-[RKA UKER] '01183 -- KCP KARANGANYAR' → 12 bulan RKA tersedia
-[RKA UKER] '01194 -- KCP THAMRIN CITY' → 12 bulan RKA tersedia
-[RKA UKER] '01195 -- KCP BENDUNGAN HILIR' → 12 bulan RKA tersedia
-[RKA UKER] '01196 -- KCP HARCO MANGGA DUA' → 12 bulan RKA tersedia
-[RKA UKER] '02004 -- KCP GAJAH MADA' → 12 bulan RKA tersedia
-[RKA UKER] '02006 -- KCP KEBON KACANG' → 12 bulan RKA tersedia
-[RKA UKER] '02020 -- KCP KEMENTRIAN BUMN' → 12 bulan RKA tersedia
-[RKA UKER] '02079 -- KCP TASPEN' → 12 bulan RKA tersedia
-[RKA UKER] '02080 -- KCP PASAR BARU' → 12 bulan RKA tersedia
-[RKA UKER] '02102 -- KCP PASAR PAGI MANGGA DUA' → 12 bulan RKA tersedia
-[RKA UKER] '02249 -- KCP BLOK B PUSAT GROSIR TN ABA' → tidak ada RKA (key_norm='kcp blok b pusat grosir tn aba')
-[RKA UKER] 'Total KCP' → tidak ada RKA (key_norm='total kcp')
-INFO:     127.0.0.1:63200 - "POST /api/export/kcp HTTP/1.1" 200 OK
-[RKA UKER] '00784 -- UNIT GARUDA JAKARTA' → tidak ada RKA (key_norm='unit garuda jakarta')
-[RKA UKER] '00785 -- UNIT SUMUR BATU JAKARTA' → tidak ada RKA (key_norm='unit sumur batu jakarta')
-[RKA UKER] '00786 -- UNIT HAJI UNG' → tidak ada RKA (key_norm='unit haji ung')
-[RKA UKER] '00789 -- UNIT PANGERAN JAYAKARTA' → tidak ada RKA (key_norm='unit pangeran jayakarta')
-[RKA UKER] '00790 -- UNIT JAKARTA TANGKI' → tidak ada RKA (key_norm='unit jakarta tangki')
-[RKA UKER] '00791 -- UNIT SAWAH BESAR' → tidak ada RKA (key_norm='unit sawah besar')
-[RKA UKER] '00792 -- UNIT KARANG ANYAR JAKARTA' → tidak ada RKA (key_norm='unit karang anyar jakarta')
-[RKA UKER] '00955 -- UNIT KS TUBUN' → tidak ada RKA (key_norm='unit ks tubun')
-[RKA UKER] '00964 -- UNIT SERDANG JAKARTA' → tidak ada RKA (key_norm='unit serdang jakarta')
-[RKA UKER] '00969 -- UNIT BENDUNGAN HILIR' → tidak ada RKA (key_norm='unit bendungan hilir')
-[RKA UKER] '03229 -- UNIT KEBON KACANG' → tidak ada RKA (key_norm='unit kebon kacang')
-[RKA UKER] '03247 -- UNIT SENEN' → tidak ada RKA (key_norm='unit senen')
-[RKA UKER] '03318 -- UNIT PETOJO' → tidak ada RKA (key_norm='unit petojo')
-[RKA UKER] '03324 -- UNIT JEMBATAN LIMA' → tidak ada RKA (key_norm='unit jembatan lima')
-[RKA UKER] '03328 -- UNIT HASYIM ASHARI' → tidak ada RKA (key_norm='unit hasyim ashari')
-[RKA UKER] '07741 -- UNIT PETAMBURAN' → tidak ada RKA (key_norm='unit petamburan')
-[RKA UKER] 'Total Unit' → tidak ada RKA (key_norm='total unit')
-INFO:     127.0.0.1:63206 - "POST /api/export/unit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64907 - "POST /api/export/kc HTTP/1.1" 200 OK

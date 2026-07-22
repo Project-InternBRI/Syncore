@@ -822,13 +822,9 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
                 rka_tahun = int("20" + thn_str) if len(thn_str) == 2 else int(thn_str)
             except: pass
             
-            MONTHS_MAP = {
-                'januari': '01', 'februari': '02', 'maret': '03', 'april': '04',
-                'mei': '05', 'juni': '06', 'juli': '07', 'agustus': '08',
-                'september': '09', 'oktober': '10', 'november': '11', 'desember': '12'
-            }
-            for i, (k, v) in enumerate(MONTHS_MAP.items()):
-                if k in bln_str:
+            MONTHS_PREFIX = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'ags', 'sep', 'okt', 'nov', 'des']
+            for i, pfix in enumerate(MONTHS_PREFIX):
+                if pfix in bln_str:
                     rka_bulan_terakhir_idx = i
                     break
 
@@ -854,10 +850,13 @@ def _write_sheet(ws, kc_name: str, kc_data: dict, rka_records_by_month: dict = N
         c.border = header_bdr
 
     # Pencapaian RKA header (merge baris 3-4)
-    pencap_label = f"{BULAN_SINGKAT[now.month]}-{str(now.year)[-2:]}"
+    BULAN_LENGKAP = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    nama_bulan = BULAN_LENGKAP[rka_bulan_terakhir_idx]
+    pencap_label = f"{nama_bulan} {rka_tahun}"
+    
     for r in [HDR_ROW1, HDR_ROW2]:
-        c = ws.cell(row=r, column=COL_PENCAP,
-                    value="Pencp RKA %" if r == HDR_ROW1 else pencap_label)
+        val = f"Pencp RKA %\n({pencap_label})" if r == HDR_ROW1 else ""
+        c = ws.cell(row=r, column=COL_PENCAP, value=val)
         c.fill = header_fill
         c.font = header_font
         c.alignment = header_align
@@ -1213,14 +1212,19 @@ def _write_header_value(ws, row: int, row_data: dict, rka_vals: list,
     c.border = bdr
     c.number_format = "0.00%"
     
+    from openpyxl.styles import PatternFill
+    
     if pencap is not None:
         c.value = pencap
         if pencap >= 1.00:
-            c.font = _font(color="16A34A") # Hijau
+            c.fill = PatternFill(start_color="16A34A", end_color="16A34A", fill_type="solid") # Hijau
+            c.font = _font(color="FFFFFF") # Teks Putih
         elif pencap >= 0.80:
-            c.font = _font(color="D97706") # Kuning
+            c.fill = PatternFill(start_color="F59E0B", end_color="F59E0B", fill_type="solid") # Kuning/Orange
+            c.font = _font(color="000000") # Teks Hitam
         else:
-            c.font = _font(color="DC2626") # Merah
+            c.fill = PatternFill(start_color="DC2626", end_color="DC2626", fill_type="solid") # Merah
+            c.font = _font(color="FFFFFF") # Teks Putih
     else:
         c.value = ""
         c.font = font_obj
@@ -1367,11 +1371,14 @@ def _write_bold_label(ws, row: int, row_data: dict, rka_vals: list,
     if pencap is not None:
         c.value = pencap
         if pencap >= 1.00:
-            c.font = _font(bold=True, color="16A34A") # Hijau
+            c.fill = PatternFill(start_color="16A34A", end_color="16A34A", fill_type="solid") # Hijau
+            c.font = _font(bold=True, color="FFFFFF") # Teks Putih
         elif pencap >= 0.80:
-            c.font = _font(bold=True, color="D97706") # Kuning
+            c.fill = PatternFill(start_color="F59E0B", end_color="F59E0B", fill_type="solid") # Kuning/Orange
+            c.font = _font(bold=True, color="000000") # Teks Hitam
         else:
-            c.font = _font(bold=True, color="DC2626") # Merah
+            c.fill = PatternFill(start_color="DC2626", end_color="DC2626", fill_type="solid") # Merah
+            c.font = _font(bold=True, color="FFFFFF") # Teks Putih
     else:
         c.value = ""
         c.font = font_obj
@@ -1493,11 +1500,14 @@ def _write_data_row(ws, row: int, row_data: dict, rka_vals: list,
     if pencap is not None:
         c.value = pencap
         if pencap >= 1.00:
-            c.font = _font(color="16A34A") # Hijau
+            c.fill = PatternFill(start_color="16A34A", end_color="16A34A", fill_type="solid") # Hijau
+            c.font = _font(color="FFFFFF") # Teks Putih
         elif pencap >= 0.80:
-            c.font = _font(color="D97706") # Kuning
+            c.fill = PatternFill(start_color="F59E0B", end_color="F59E0B", fill_type="solid") # Kuning/Orange
+            c.font = _font(color="000000") # Teks Hitam
         else:
-            c.font = _font(color="DC2626") # Merah
+            c.fill = PatternFill(start_color="DC2626", end_color="DC2626", fill_type="solid") # Merah
+            c.font = _font(color="FFFFFF") # Teks Putih
     else:
         c.value = ""
         c.font = font_obj
